@@ -410,8 +410,8 @@ export default function Dashboard() {
                                     className="w-full bg-slate-700 rounded-md p-2 mt-1"
                                 >
                                     <option value="Nunta">Nunta</option>
-                                    <option value="Botez">Botez</option>
-                                    <option value="Corporate">Corporate</option>
+                                    <option value="Botez">Cumătrie</option>
+                                    <option value="Corporate">Alteceva</option>
                                 </select>
                             </div>
 
