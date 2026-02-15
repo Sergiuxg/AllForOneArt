@@ -25,7 +25,7 @@ app.use(cors({
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
 }));
-app.options("*", cors());
+app.options("/*", cors());
 
 
 // ---- LOGIN: doar parola -> token
@@ -91,6 +91,8 @@ app.delete("/events/:id", authMiddleware, (req, res) => {
 });
 
 const PORT = Number(process.env.PORT || 3001);
-app.listen(PORT, () => {
+app.listen(PORT, "0.0.0.0", () => {
     console.log("API running on", PORT);
 });
+
+
