@@ -355,22 +355,20 @@ export default function Dashboard() {
 
                         <div className="flex-1 min-h-0">
                             <FullCalendar
-                                plugins={[dayGridPlugin, interactionPlugin]}
-                                initialView="dayGridMonth" // on phone still day grid month
+                                plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+                                initialView="dayGridMonth"
+                                firstDay={1}                 // ✅ luni
+                                locale="ro"                  // opțional, pentru luni/marți în română
                                 headerToolbar={{
                                     left: "",
                                     center: "title",
                                     right: "today prev,next",
                                 }}
                                 events={events}
-                                dateClick={handleDateClick}
-                                eventClick={handleEventClick}
-                                selectable
                                 displayEventTime={false}
-                                showNonCurrentDates={false}
-                                fixedWeekCount={false}
-                                height="100%"
+                                height="auto"
                             />
+
                         </div>
                     </section>
                 )}
