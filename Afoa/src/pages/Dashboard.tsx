@@ -5,6 +5,7 @@ import interactionPlugin from "@fullcalendar/interaction";
 import type { EventClickArg } from "@fullcalendar/core";
 import type { DateClickArg } from "@fullcalendar/interaction";
 import type { EventInput } from "@fullcalendar/core";
+import roLocale from "@fullcalendar/core/locales/ro";
 
 
 type EventForm = {
@@ -355,20 +356,24 @@ export default function Dashboard() {
 
                         <div className="flex-1 min-h-0">
                             <FullCalendar
-                                plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+                                firstDay={1}
+                                locate={roLocale}
+                                plugins={[dayGridPlugin, interactionPlugin]}
                                 initialView="dayGridMonth"
-                                firstDay={1}                 // ✅ luni
-                                locale="ro"                  // opțional, pentru luni/marți în română
                                 headerToolbar={{
                                     left: "",
                                     center: "title",
                                     right: "today prev,next",
                                 }}
                                 events={events}
+                                dateClick={handleDateClick}
+                                eventClick={handleEventClick}
+                                selectable
                                 displayEventTime={false}
-                                height="auto"
+                                showNonCurrentDates={false}
+                                fixedWeekCount={false}
+                                height="100%"
                             />
-
                         </div>
                     </section>
                 )}
