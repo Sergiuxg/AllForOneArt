@@ -1,18 +1,29 @@
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+const API_URL = import.meta.env.VITE_API_URL;
 
-async function request(path: string, options: RequestInit = {}) {
+export async function request(path: string, options: RequestInit = {}) {
+    const token = localStorage.getItem("token");
+
     const res = await fetch(`${API_URL}${path}`, {
-        ...options,
         headers: {
             "Content-Type": "application/json",
-            ...(options.headers || {}),
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
+        ...options,
     });
 
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data?.message || `HTTP ${res.status}`);
-    return data;
+    // 👇 AICI adăugăm protecția
+    if (res.status === 401) {
+        localStorage.removeItem("token");
+        window.location.href = "/login";
+        return;
+    }
+
+    // dacă nu există body (ex: DELETE)
+    if (res.status === 204) return null;
+
+    return res.json();
 }
+
 
 export async function apiLogin(password: string) {
     return request("/login", {
@@ -24,6 +35,11 @@ export async function apiLogin(password: string) {
 export async function fetchEvents() {
     const res = await request("/events");
     return res.json();
+    if (res.status === 401) {
+        localStorage.removeItem("token");
+        window.location.href = "/login";
+    }
+
 }
 
 export async function createEvent(event: any) {
