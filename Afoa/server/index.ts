@@ -7,7 +7,7 @@ import db from "./src/db/db";
 import { authMiddleware } from "./src/middleware/auth.middleware";
 
 const app = express();
-app.use(cors());
+app.use(cors({ origin: true, allowedHeaders: ["Content-Type", "Authorization"] }));
 app.use(express.json());
 
 const allowed = [
@@ -25,7 +25,6 @@ app.use(cors({
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
 }));
-app.options("/*", cors());
 
 
 // ---- LOGIN: doar parola -> token
