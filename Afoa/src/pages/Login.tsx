@@ -22,8 +22,9 @@ export default function Login() {
             setAuthed(true);
             navigate("/", { replace: true });
         } catch (e: any) {
-            setErr(e?.message || "Parola gresita");
-        } finally {
+            setError(e?.message || "Eroare necunoscută");
+        }
+        finally {
             setLoading(false);
         }
     };

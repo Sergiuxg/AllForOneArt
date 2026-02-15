@@ -1,39 +1,24 @@
-const API_URL = "https://afoa-api.onrender.com";
-
-function getToken() {
-    return localStorage.getItem("token") || "";
-}
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
 async function request(path: string, options: RequestInit = {}) {
     const res = await fetch(`${API_URL}${path}`, {
         ...options,
         headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${getToken()}`,
             ...(options.headers || {}),
         },
     });
 
-    if (!res.ok) {
-        const text = await res.text().catch(() => "");
-        throw new Error(text || "API Error");
-    }
-
-    return res;
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data?.message || `HTTP ${res.status}`);
+    return data;
 }
 
 export async function apiLogin(password: string) {
-    const res = await fetch(`${API_URL}/login`, {
+    return request("/login", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password }),
-    });
-
-    if (!res.ok) {
-        throw new Error("Parola gresita");
-    }
-
-    return res.json() as Promise<{ token: string }>;
+        body: JSON.stringify({ password: password.trim() }),
+    }) as Promise<{ token: string }>;
 }
 
 export async function fetchEvents() {

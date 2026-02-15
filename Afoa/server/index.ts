@@ -9,6 +9,24 @@ import { authMiddleware } from "./src/middleware/auth.middleware";
 const app = express();
 app.use(cors());
 app.use(express.json());
+import cors from "cors";
+
+const allowed = [
+    "http://localhost:5173",
+    "https://allforone-theta.vercel.app"
+    // dacă ai alt domeniu vercel, adaugă-l aici
+];
+
+app.use(cors({
+    origin: (origin, cb) => {
+        if (!origin) return cb(null, true); // Postman / server-to-server
+        if (allowed.includes(origin)) return cb(null, true);
+        return cb(new Error("CORS blocked: " + origin));
+    },
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+}));
+app.options("*", cors());
 
 
 // ---- LOGIN: doar parola -> token
