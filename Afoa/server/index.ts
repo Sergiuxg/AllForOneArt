@@ -9,7 +9,6 @@ import { authMiddleware } from "./src/middleware/auth.middleware";
 const app = express();
 app.use(cors());
 app.use(express.json());
-import cors from "cors";
 
 const allowed = [
     "http://localhost:5173",
