@@ -12,19 +12,26 @@ app.use(express.json());
 
 const allowed = [
     "http://localhost:5173",
-    "https://allforone-theta.vercel.app"
-    // dacă ai alt domeniu vercel, adaugă-l aici
+    "https://allforone-theta.vercel.app",
 ];
 
-app.use(cors({
-    origin: (origin, cb) => {
-        if (!origin) return cb(null, true); // Postman / server-to-server
-        if (allowed.includes(origin)) return cb(null, true);
-        return cb(new Error("CORS blocked: " + origin));
-    },
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-}));
+app.use(
+    cors({
+        origin: (origin, cb) => {
+            if (!origin) return cb(null, true);
+            if (allowed.includes(origin)) return cb(null, true);
+            return cb(new Error("CORS blocked: " + origin));
+        },
+        methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        allowedHeaders: ["Content-Type", "Authorization"],
+    })
+);
+
+// preflight doar pe rute concrete (fără wildcard)
+app.options("/login", cors());
+app.options("/events", cors());
+app.options("/events/:id", cors());
+
 
 
 // ---- LOGIN: doar parola -> token
