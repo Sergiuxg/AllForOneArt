@@ -667,6 +667,7 @@ export default function Dashboard() {
                             </button>
 
                             {/* EDIT MODAL */}
+                            {/* EDIT MODAL */}
                             {isOpen && (
                                 <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-3">
                                     <div className="bg-slate-800 w-full max-w-6xl rounded-xl p-5 md:p-8 border border-slate-700 relative max-h-[90vh] overflow-y-auto">
@@ -676,17 +677,18 @@ export default function Dashboard() {
 
                                         <button
                                             onClick={closeModal}
-                                            className="absolute top-4 right-4 text-slate-400 hover:text-white"
+                                            className="absolute top-4 right-4 text-slate-400 hover:text-white text-2xl"
                                         >
                                             ✕
                                         </button>
 
-                                        {/* AICI e cheia: toate inputurile */}
-                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                                        {/* AICI apar TOATE câmpurile */}
+                                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                                             <EventFields formData={formData} handleChange={handleChange} />
                                         </div>
 
-                                        <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mt-6">
+                                        {/* Buttons */}
+                                        <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mt-8">
                                             <button
                                                 onClick={handleSubmit}
                                                 disabled={loading}
@@ -713,6 +715,7 @@ export default function Dashboard() {
                                     </div>
                                 </div>
                             )}
+
                         </div>
                     </div>
                 )}
