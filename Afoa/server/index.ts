@@ -8,11 +8,11 @@ import { authMiddleware } from "./src/middleware/auth.middleware";
 
 const app = express();
 app.use(cors({
-    origin: true, // ✅ permite orice origin
-    credentials: true,
+    origin: true,
     allowedHeaders: ["Content-Type", "Authorization"],
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
 }));
+
 app.use(express.json());
 
 const allowed = [
