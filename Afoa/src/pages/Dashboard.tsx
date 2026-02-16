@@ -656,7 +656,7 @@ export default function Dashboard() {
                     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-3">
                         <div className="bg-slate-800 w-full max-w-5xl rounded-xl p-5 md:p-8 border border-slate-700 relative max-h-[90vh] overflow-y-auto">
                             <h2 className="text-xl md:text-3xl font-semibold text-center mb-6">
-                                Modifică Eveniment
+                                Test 123
                             </h2>
 
                             <button
