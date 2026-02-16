@@ -7,11 +7,29 @@ import db from "./src/db/db";
 import { authMiddleware } from "./src/middleware/auth.middleware";
 
 const app = express();
-app.use(cors({
-    origin: true,
-    allowedHeaders: ["Content-Type", "Authorization"],
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-}));
+import cors from "cors";
+
+const allowedOrigins = [
+    "http://localhost:5173",
+    "https://allforone-theta.vercel.app",
+];
+
+const allowedVercelRegex = /^https:\/\/allforone(-[a-z0-9-]+)?\.vercel\.app$/i;
+// acceptă: allforone-theta.vercel.app + preview links gen allforone-git-main-...vercel.app
+
+app.use(
+    cors({
+        origin: (origin, cb) => {
+            if (!origin) return cb(null, true); // Postman / server-to-server
+            if (allowedOrigins.includes(origin)) return cb(null, true);
+            if (allowedVercelRegex.test(origin)) return cb(null, true);
+            return cb(new Error("CORS blocked: " + origin));
+        },
+        methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        allowedHeaders: ["Content-Type", "Authorization"],
+        credentials: true,
+    })
+);
 
 app.use(express.json());
 
