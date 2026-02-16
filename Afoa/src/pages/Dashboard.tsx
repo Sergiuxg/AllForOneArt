@@ -2,20 +2,23 @@ import { useEffect, useMemo, useState } from "react";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
-import type { EventClickArg } from "@fullcalendar/core";
-import type { DateClickArg } from "@fullcalendar/interaction";
-import type { EventInput } from "@fullcalendar/core";
 import roLocale from "@fullcalendar/core/locales/ro";
+import type { EventClickArg, EventInput } from "@fullcalendar/core";
+import type { DateClickArg } from "@fullcalendar/interaction";
 
+type EventType = "Nunta" | "Cumătrie" | "Altceva";
+type EventStatus = "Semnat" | "In Asteptare";
 
 type EventForm = {
     date: string;
-    time: string; // kept for form, not shown in calendar
-    type: "Nunta" | "Cumătrie" | "Altceva";
-    status: "Semnat" | "In Asteptare";
+    time: string; // păstrat pentru formular (nu afișăm ora în calendar)
+    type: EventType;
+    status: EventStatus;
+
     location: string;
     street: string;
     details: string;
+
     miri: string;
     contact: string;
     price: string;
@@ -35,13 +38,13 @@ type EventForm = {
     muzicaContact: string;
     muzicaDetails: string;
 
-    color: string; // hex
+    color: string;
 };
 
 type ApiEvent = {
     id: string;
     title: string;
-    start: string; // ISO date (YYYY-MM-DD) for allDay
+    start: string; // YYYY-MM-DD
     allDay: boolean;
     backgroundColor?: string;
     borderColor?: string;
@@ -57,6 +60,7 @@ function getToken() {
 
 async function apiRequest(path: string, options: RequestInit = {}) {
     const token = getToken();
+
     const res = await fetch(`${API_URL}${path}`, {
         ...options,
         headers: {
@@ -67,16 +71,24 @@ async function apiRequest(path: string, options: RequestInit = {}) {
     });
 
     if (!res.ok) {
+        // dacă token e expirat -> scoate token și trimite la login
+        if (res.status === 401) {
+            localStorage.removeItem(TOKEN_KEY);
+            // dacă ai /login route, lasă așa; dacă nu, scoate linia următoare
+            // window.location.href = "/login";
+        }
+
         const text = await res.text().catch(() => "");
         throw new Error(text || `API error: ${res.status}`);
     }
+
     return res;
 }
 
 async function fetchEventsApi(): Promise<EventInput[]> {
     const res = await apiRequest("/events", { method: "GET" });
     const data = (await res.json()) as ApiEvent[];
-    // Make sure FullCalendar gets valid EventInput[]
+
     return (Array.isArray(data) ? data : []).map((e) => ({
         id: e.id,
         title: e.title,
@@ -98,6 +110,258 @@ async function updateEventApi(id: string, payload: ApiEvent) {
 
 async function deleteEventApi(id: string) {
     await apiRequest(`/events/${id}`, { method: "DELETE" });
+}
+
+/** ✅ CÂMPURI UNICE (folosite în pagină + modal) */
+function EventFields({
+                         formData,
+                         handleChange,
+                     }: {
+    formData: EventForm;
+    handleChange: (
+        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+    ) => void;
+}) {
+    return (
+        <>
+            {/* Data */}
+            <div>
+                <label className="text-slate-400 text-sm">Data</label>
+                <input
+                    type="date"
+                    name="date"
+                    value={formData.date}
+                    onChange={handleChange}
+                    className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
+                />
+            </div>
+
+            {/* Ora */}
+            <div>
+                <label className="text-slate-400 text-sm">Ora</label>
+                <input
+                    type="time"
+                    name="time"
+                    value={formData.time}
+                    onChange={handleChange}
+                    className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
+                />
+            </div>
+
+            {/* Tip */}
+            <div>
+                <label className="text-slate-400 text-sm">Tip</label>
+                <select
+                    name="type"
+                    value={formData.type}
+                    onChange={handleChange}
+                    className="w-full bg-slate-700 rounded-md p-2 mt-1"
+                >
+                    <option value="Nunta">Nunta</option>
+                    <option value="Cumătrie">Cumătrie</option>
+                    <option value="Altceva">Altceva</option>
+                </select>
+            </div>
+
+            {/* Status */}
+            <div>
+                <label className="text-slate-400 text-sm">Status</label>
+                <select
+                    name="status"
+                    value={formData.status}
+                    onChange={handleChange}
+                    className="w-full bg-slate-700 rounded-md p-2 mt-1"
+                >
+                    <option value="Semnat">Semnat</option>
+                    <option value="In Asteptare">In Asteptare</option>
+                </select>
+            </div>
+
+            {/* Culoare */}
+            <div>
+                <label className="text-slate-400 text-sm">Culoarea</label>
+                <input
+                    type="color"
+                    name="color"
+                    value={formData.color}
+                    onChange={handleChange}
+                    className="h-10 w-16 bg-transparent mt-2"
+                />
+            </div>
+
+            {/* Locatie */}
+            <div className="md:col-span-2">
+                <label className="text-slate-400 text-sm">Locatia</label>
+                <input
+                    name="location"
+                    value={formData.location}
+                    onChange={handleChange}
+                    className="w-full border border-pink-500 rounded-md p-2 bg-transparent outline-none"
+                />
+            </div>
+
+            {/* Restaurant/Sala */}
+            <div className="md:col-span-2">
+                <label className="text-slate-400 text-sm">Restaurant/Sala</label>
+                <input
+                    name="street"
+                    value={formData.street}
+                    onChange={handleChange}
+                    className="w-full border border-pink-500 rounded-md p-2 bg-transparent outline-none"
+                />
+            </div>
+
+            {/* Detalii scurte */}
+            <div className="lg:col-span-4">
+                <label className="text-slate-400 text-sm">Detalii</label>
+                <input
+                    name="details"
+                    value={formData.details}
+                    onChange={handleChange}
+                    className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
+                />
+            </div>
+
+            {/* Miri / Contact / Pret / Avans */}
+            <div>
+                <label className="text-slate-400 text-sm">Miri</label>
+                <input
+                    name="miri"
+                    value={formData.miri}
+                    onChange={handleChange}
+                    className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
+                />
+            </div>
+
+            <div>
+                <label className="text-slate-400 text-sm">Contacte</label>
+                <input
+                    name="contact"
+                    value={formData.contact}
+                    onChange={handleChange}
+                    className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
+                />
+            </div>
+
+            <div>
+                <label className="text-slate-400 text-sm">Pret</label>
+                <input
+                    name="price"
+                    value={formData.price}
+                    onChange={handleChange}
+                    className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
+                />
+            </div>
+
+            <div>
+                <label className="text-slate-400 text-sm">Avans</label>
+                <input
+                    name="avans"
+                    value={formData.avans}
+                    onChange={handleChange}
+                    className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
+                />
+            </div>
+
+            {/* Detalii nunta */}
+            <div className="lg:col-span-4">
+                <label className="text-slate-400 text-sm">Detalii despre nuntă</label>
+                <textarea
+                    name="detailsWedding"
+                    value={formData.detailsWedding}
+                    onChange={handleChange}
+                    className="w-full bg-transparent border-b border-slate-600 py-2 outline-none min-h-[90px]"
+                />
+            </div>
+
+            {/* Moderator */}
+            <div>
+                <label className="text-slate-400 text-sm">Moderator</label>
+                <input
+                    name="moderator"
+                    value={formData.moderator}
+                    onChange={handleChange}
+                    className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
+                />
+            </div>
+            <div>
+                <label className="text-slate-400 text-sm">Moderator Contact</label>
+                <input
+                    name="moderatorContact"
+                    value={formData.moderatorContact}
+                    onChange={handleChange}
+                    className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
+                />
+            </div>
+            <div>
+                <label className="text-slate-400 text-sm">Moderator Detalii</label>
+                <input
+                    name="moderatorDetails"
+                    value={formData.moderatorDetails}
+                    onChange={handleChange}
+                    className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
+                />
+            </div>
+
+            {/* Foto/Video */}
+            <div>
+                <label className="text-slate-400 text-sm">Foto/Video</label>
+                <input
+                    name="fotoVideo"
+                    value={formData.fotoVideo}
+                    onChange={handleChange}
+                    className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
+                />
+            </div>
+            <div>
+                <label className="text-slate-400 text-sm">Foto/Video Contact</label>
+                <input
+                    name="fotoVideoContact"
+                    value={formData.fotoVideoContact}
+                    onChange={handleChange}
+                    className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
+                />
+            </div>
+            <div>
+                <label className="text-slate-400 text-sm">Foto/Video Detalii</label>
+                <input
+                    name="fotoVideoDetails"
+                    value={formData.fotoVideoDetails}
+                    onChange={handleChange}
+                    className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
+                />
+            </div>
+
+            {/* Muzica */}
+            <div>
+                <label className="text-slate-400 text-sm">Muzica</label>
+                <input
+                    name="muzica"
+                    value={formData.muzica}
+                    onChange={handleChange}
+                    className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
+                />
+            </div>
+            <div>
+                <label className="text-slate-400 text-sm">Muzica Contact</label>
+                <input
+                    name="muzicaContact"
+                    value={formData.muzicaContact}
+                    onChange={handleChange}
+                    className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
+                />
+            </div>
+            <div>
+                <label className="text-slate-400 text-sm">Muzica Detalii</label>
+                <input
+                    name="muzicaDetails"
+                    value={formData.muzicaDetails}
+                    onChange={handleChange}
+                    className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
+                />
+            </div>
+        </>
+    );
 }
 
 export default function Dashboard() {
@@ -132,12 +396,10 @@ export default function Dashboard() {
     const [activeView, setActiveView] = useState<"calendar" | "newEvent">("calendar");
     const [events, setEvents] = useState<EventInput[]>([]);
     const [loading, setLoading] = useState(false);
-    const [apiError, setApiError] = useState<string>("");
+    const [apiError, setApiError] = useState("");
 
-    // edit modal
     const [isOpen, setIsOpen] = useState(false);
     const [editingEventId, setEditingEventId] = useState<string | null>(null);
-
     const [formData, setFormData] = useState<EventForm>(emptyForm);
 
     const closeModal = () => {
@@ -147,13 +409,10 @@ export default function Dashboard() {
     };
 
     const openNewEvent = () => {
-        setIsOpen(false);
-        setEditingEventId(null);
-        setFormData(emptyForm);
+        closeModal();
         setActiveView("newEvent");
     };
 
-    // Load events from backend
     const reloadEvents = async () => {
         setApiError("");
         setLoading(true);
@@ -173,24 +432,18 @@ export default function Dashboard() {
     }, []);
 
     const handleDateClick = (info: DateClickArg) => {
-        setFormData((prev) => ({
-            ...prev,
-            ...emptyForm,
-            date: info.dateStr,
-        }));
+        setFormData({ ...emptyForm, date: info.dateStr });
+        setEditingEventId(null);
         setActiveView("newEvent");
     };
 
     const buildPayload = (id?: string): ApiEvent => {
         const eventId = id || editingEventId || Date.now().toString();
+        const safeDate = formData.date || new Date().toISOString().slice(0, 10);
 
-        const safeDate =
-            formData.date || new Date().toISOString().slice(0, 10);
-
-        const safeTitle =
-            formData.location
-                ? `${formData.type} - ${formData.location}`
-                : `${formData.type} - Eveniment`;
+        const safeTitle = formData.location
+            ? `${formData.type} - ${formData.location}`
+            : `${formData.type} - Eveniment`;
 
         return {
             id: eventId,
@@ -202,7 +455,6 @@ export default function Dashboard() {
             extendedProps: { ...formData },
         };
     };
-
 
     const handleEventClick = (info: EventClickArg) => {
         const event = info?.event;
@@ -218,8 +470,8 @@ export default function Dashboard() {
             ...props,
             date: props.date || dateStr,
             time: props.time || "",
-            type: (props.type as any) || "Nunta",
-            status: (props.status as any) || "Semnat",
+            type: (props.type as EventType) || "Nunta",
+            status: (props.status as EventStatus) || "Semnat",
             color: props.color || (event.backgroundColor as string) || "#000000",
         });
 
@@ -233,7 +485,6 @@ export default function Dashboard() {
         const { name, value } = e.target;
         setFormData((p) => ({ ...p, [name]: value }));
     };
-
 
     const handleSubmit = async () => {
         setApiError("");
@@ -264,7 +515,6 @@ export default function Dashboard() {
 
         setApiError("");
         setLoading(true);
-
         try {
             await deleteEventApi(editingEventId);
             await reloadEvents();
@@ -280,7 +530,6 @@ export default function Dashboard() {
         <div className="h-screen w-screen overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 text-slate-100 flex flex-col md:flex-row">
             {/* SIDEBAR */}
             <aside className="w-full md:w-64 bg-slate-900/90 border-b md:border-b-0 md:border-r border-slate-700 p-4 md:p-5">
-                {/* Logo centered on mobile, left on desktop */}
                 <div className="flex justify-center md:justify-start items-center gap-3 mb-5 md:mb-8">
                     <img
                         src="https://afoa.gnm.md/static//admin/logo.png"
@@ -290,7 +539,6 @@ export default function Dashboard() {
                     <div className="font-semibold hidden md:block">All For One Art</div>
                 </div>
 
-                {/* Buttons centered on mobile */}
                 <nav className="flex justify-center md:justify-start gap-3 md:flex-col text-sm">
                     <button
                         onClick={() => {
@@ -317,7 +565,6 @@ export default function Dashboard() {
 
             {/* MAIN */}
             <main className="flex-1 flex flex-col overflow-hidden p-4 md:p-6">
-                {/* Header */}
                 <header className="flex items-start justify-between gap-3 mb-4">
                     <div>
                         <p className="text-sm text-slate-400">
@@ -338,7 +585,7 @@ export default function Dashboard() {
                     )}
                 </header>
 
-                {/* CALENDAR full height */}
+                {/* CALENDAR */}
                 {activeView === "calendar" && (
                     <section className="flex-1 bg-slate-800 rounded-xl border border-slate-700 p-3 md:p-4 flex flex-col overflow-hidden">
                         <div className="flex items-center justify-between mb-2">
@@ -381,233 +628,8 @@ export default function Dashboard() {
                 {/* NEW EVENT PAGE */}
                 {activeView === "newEvent" && (
                     <section className="flex-1 bg-slate-800 rounded-xl border border-slate-700 p-5 md:p-10 overflow-y-auto">
-                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 xl:gap-14">
-                            <div>
-                                <label className="text-slate-400 text-sm">Data</label>
-                                <input
-                                    type="date"
-                                    name="date"
-                                    value={formData.date}
-                                    onChange={handleChange}
-                                    className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="text-slate-400 text-sm">Ora</label>
-                                <input
-                                    type="time"
-                                    name="time"
-                                    value={formData.time}
-                                    onChange={handleChange}
-                                    className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="text-slate-400 text-sm">Tip Eveniment</label>
-                                <select
-                                    name="type"
-                                    value={formData.type}
-                                    onChange={handleChange}
-                                    className="w-full bg-slate-700 rounded-md p-2 mt-1"
-                                >
-                                    <option value="Nunta">Nunta</option>
-                                    <option value="Cumătrie">Cumătrie</option>
-                                    <option value="Altceva">Altceva</option>
-                                </select>
-                            </div>
-
-                            <div>
-                                <label className="text-slate-400 text-sm">Status</label>
-                                <select
-                                    name="status"
-                                    value={formData.status}
-                                    onChange={handleChange}
-                                    className="w-full bg-slate-700 rounded-md p-2 mt-1"
-                                >
-                                    <option value="Semnat">Semnat</option>
-                                    <option value="In Asteptare">In Asteptare</option>
-                                </select>
-                            </div>
-
-                            <div>
-                                <label className="text-slate-400 text-sm">Culoarea</label>
-                                <input
-                                    type="color"
-                                    name="color"
-                                    value={formData.color}
-                                    onChange={handleChange}
-                                    className="h-10 w-16 bg-transparent mt-2"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="text-slate-400 text-sm">Locatia</label>
-                                <input
-                                    name="location"
-                                    value={formData.location}
-                                    onChange={handleChange}
-                                    className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="text-slate-400 text-sm">Strada</label>
-                                <input
-                                    name="street"
-                                    value={formData.street}
-                                    onChange={handleChange}
-                                    className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="text-slate-400 text-sm">Detalii</label>
-                                <input
-                                    name="details"
-                                    value={formData.details}
-                                    onChange={handleChange}
-                                    className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="text-slate-400 text-sm">Miri</label>
-                                <input
-                                    name="miri"
-                                    value={formData.miri}
-                                    onChange={handleChange}
-                                    className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="text-slate-400 text-sm">Contacte</label>
-                                <input
-                                    name="contact"
-                                    value={formData.contact}
-                                    onChange={handleChange}
-                                    className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="text-slate-400 text-sm">Pret</label>
-                                <input
-                                    name="price"
-                                    value={formData.price}
-                                    onChange={handleChange}
-                                    className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="text-slate-400 text-sm">Avans</label>
-                                <input
-                                    name="avans"
-                                    value={formData.avans}
-                                    onChange={handleChange}
-                                    className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
-                                />
-                            </div>
-
-                            <div className="md:col-span-2 xl:col-span-3">
-                                <label className="text-slate-400 text-sm">Detalii despre nunta</label>
-                                <textarea
-                                    name="detailsWedding"
-                                    value={formData.detailsWedding}
-                                    onChange={handleChange}
-                                    className="w-full bg-transparent border-b border-slate-600 py-2 outline-none min-h-[80px]"
-                                />
-                            </div>
-
-                            {/* Moderator */}
-                            <div>
-                                <label className="text-slate-400 text-sm">Moderator</label>
-                                <input
-                                    name="moderator"
-                                    value={formData.moderator}
-                                    onChange={handleChange}
-                                    className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
-                                />
-                            </div>
-                            <div>
-                                <label className="text-slate-400 text-sm">Contacte</label>
-                                <input
-                                    name="moderatorContact"
-                                    value={formData.moderatorContact}
-                                    onChange={handleChange}
-                                    className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
-                                />
-                            </div>
-                            <div>
-                                <label className="text-slate-400 text-sm">Detalii</label>
-                                <input
-                                    name="moderatorDetails"
-                                    value={formData.moderatorDetails}
-                                    onChange={handleChange}
-                                    className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
-                                />
-                            </div>
-
-                            {/* Foto/Video */}
-                            <div>
-                                <label className="text-slate-400 text-sm">Foto/Video</label>
-                                <input
-                                    name="fotoVideo"
-                                    value={formData.fotoVideo}
-                                    onChange={handleChange}
-                                    className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
-                                />
-                            </div>
-                            <div>
-                                <label className="text-slate-400 text-sm">Contacte</label>
-                                <input
-                                    name="fotoVideoContact"
-                                    value={formData.fotoVideoContact}
-                                    onChange={handleChange}
-                                    className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
-                                />
-                            </div>
-                            <div>
-                                <label className="text-slate-400 text-sm">Detalii</label>
-                                <input
-                                    name="fotoVideoDetails"
-                                    value={formData.fotoVideoDetails}
-                                    onChange={handleChange}
-                                    className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
-                                />
-                            </div>
-
-                            {/* Muzica */}
-                            <div>
-                                <label className="text-slate-400 text-sm">Muzica</label>
-                                <input
-                                    name="muzica"
-                                    value={formData.muzica}
-                                    onChange={handleChange}
-                                    className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
-                                />
-                            </div>
-                            <div>
-                                <label className="text-slate-400 text-sm">Contacte</label>
-                                <input
-                                    name="muzicaContact"
-                                    value={formData.muzicaContact}
-                                    onChange={handleChange}
-                                    className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
-                                />
-                            </div>
-                            <div>
-                                <label className="text-slate-400 text-sm">Detalii</label>
-                                <input
-                                    name="muzicaDetails"
-                                    value={formData.muzicaDetails}
-                                    onChange={handleChange}
-                                    className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
-                                />
-                            </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                            <EventFields formData={formData} handleChange={handleChange} />
                         </div>
 
                         <div className="flex flex-col sm:flex-row gap-3 sm:justify-between mt-10">
@@ -632,9 +654,9 @@ export default function Dashboard() {
                 {/* EDIT MODAL */}
                 {isOpen && (
                     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-3">
-                        <div className="bg-slate-800 w-full max-w-4xl rounded-xl p-5 md:p-8 border border-slate-700 relative max-h-[90vh] overflow-y-auto">
+                        <div className="bg-slate-800 w-full max-w-5xl rounded-xl p-5 md:p-8 border border-slate-700 relative max-h-[90vh] overflow-y-auto">
                             <h2 className="text-xl md:text-3xl font-semibold text-center mb-6">
-                                Modifica Eveniment
+                                Modifică Eveniment
                             </h2>
 
                             <button
@@ -645,264 +667,22 @@ export default function Dashboard() {
                             </button>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                                {/* Data */}
-                                <div>
-                                    <label className="text-slate-400 text-sm">Data</label>
-                                    <input
-                                        type="date"
-                                        name="date"
-                                        value={formData.date}
-                                        onChange={handleChange}
-                                        className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
-                                    />
-                                </div>
+                                <EventFields formData={formData} handleChange={handleChange} />
 
-                                {/* Ora */}
-                                <div>
-                                    <label className="text-slate-400 text-sm">Ora</label>
-                                    <input
-                                        type="time"
-                                        name="time"
-                                        value={formData.time}
-                                        onChange={handleChange}
-                                        className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
-                                    />
-                                </div>
-
-                                {/* Tip */}
-                                <div>
-                                    <label className="text-slate-400 text-sm">Tip</label>
-                                    <select
-                                        name="type"
-                                        value={formData.type}
-                                        onChange={handleChange}
-                                        className="w-full bg-slate-700 rounded-md p-2 mt-1"
-                                    >
-                                        <option value="Nunta">Nunta</option>
-                                        <option value="Botez">Botez</option>
-                                        <option value="Corporate">Corporate</option>
-                                    </select>
-                                </div>
-
-                                {/* Status */}
-                                <div>
-                                    <label className="text-slate-400 text-sm">Status</label>
-                                    <select
-                                        name="status"
-                                        value={formData.status}
-                                        onChange={handleChange}
-                                        className="w-full bg-slate-700 rounded-md p-2 mt-1"
-                                    >
-                                        <option value="Semnat">Semnat</option>
-                                        <option value="In Asteptare">In Asteptare</option>
-                                    </select>
-                                </div>
-
-                                {/* Culoare */}
-                                <div>
-                                    <label className="text-slate-400 text-sm">Culoarea</label>
-                                    <input
-                                        type="color"
-                                        name="color"
-                                        value={formData.color}
-                                        onChange={handleChange}
-                                        className="h-10 w-16 bg-transparent mt-2"
-                                    />
-                                </div>
-
-                                {/* Locatie */}
-                                <div className="md:col-span-2">
-                                    <label className="text-slate-400 text-sm">Locatia</label>
-                                    <input
-                                        name="location"
-                                        value={formData.location}
-                                        onChange={handleChange}
-                                        className="w-full border border-pink-500 rounded-md p-2 bg-transparent outline-none"
-                                    />
-                                </div>
-
-                                {/* Restaurant / Sala */}
-                                <div className="md:col-span-2">
-                                    <label className="text-slate-400 text-sm">Restaurant/Sala</label>
-                                    <input
-                                        name="street"
-                                        value={formData.street}
-                                        onChange={handleChange}
-                                        className="w-full border border-pink-500 rounded-md p-2 bg-transparent outline-none"
-                                    />
-                                </div>
-
-                                {/* Detalii scurte */}
-                                <div className="lg:col-span-4">
-                                    <label className="text-slate-400 text-sm">Detalii</label>
-                                    <input
-                                        name="details"
-                                        value={formData.details}
-                                        onChange={handleChange}
-                                        className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
-                                    />
-                                </div>
-
-                                {/* Miri / Contact / Pret / Avans */}
-                                <div>
-                                    <label className="text-slate-400 text-sm">Miri</label>
-                                    <input
-                                        name="miri"
-                                        value={formData.miri}
-                                        onChange={handleChange}
-                                        className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="text-slate-400 text-sm">Contacte</label>
-                                    <input
-                                        name="contact"
-                                        value={formData.contact}
-                                        onChange={handleChange}
-                                        className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="text-slate-400 text-sm">Pret</label>
-                                    <input
-                                        name="price"
-                                        value={formData.price}
-                                        onChange={handleChange}
-                                        className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="text-slate-400 text-sm">Avans</label>
-                                    <input
-                                        name="avans"
-                                        value={formData.avans}
-                                        onChange={handleChange}
-                                        className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
-                                    />
-                                </div>
-
-                                {/* Detalii despre nunta */}
-                                <div className="lg:col-span-4">
-                                    <label className="text-slate-400 text-sm">Detalii despre nunta</label>
-                                    <textarea
-                                        name="detailsWedding"
-                                        value={formData.detailsWedding}
-                                        onChange={handleChange}
-                                        className="w-full bg-transparent border-b border-slate-600 py-2 outline-none min-h-[90px]"
-                                    />
-                                </div>
-
-                                {/* Moderator */}
-                                <div>
-                                    <label className="text-slate-400 text-sm">Moderator</label>
-                                    <input
-                                        name="moderator"
-                                        value={formData.moderator}
-                                        onChange={handleChange}
-                                        className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="text-slate-400 text-sm">Moderator Contact</label>
-                                    <input
-                                        name="moderatorContact"
-                                        value={formData.moderatorContact}
-                                        onChange={handleChange}
-                                        className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="text-slate-400 text-sm">Moderator Detalii</label>
-                                    <input
-                                        name="moderatorDetails"
-                                        value={formData.moderatorDetails}
-                                        onChange={handleChange}
-                                        className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
-                                    />
-                                </div>
-
-                                {/* Foto/Video */}
-                                <div>
-                                    <label className="text-slate-400 text-sm">Foto/Video</label>
-                                    <input
-                                        name="fotoVideo"
-                                        value={formData.fotoVideo}
-                                        onChange={handleChange}
-                                        className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="text-slate-400 text-sm">Foto/Video Contact</label>
-                                    <input
-                                        name="fotoVideoContact"
-                                        value={formData.fotoVideoContact}
-                                        onChange={handleChange}
-                                        className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="text-slate-400 text-sm">Foto/Video Detalii</label>
-                                    <input
-                                        name="fotoVideoDetails"
-                                        value={formData.fotoVideoDetails}
-                                        onChange={handleChange}
-                                        className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
-                                    />
-                                </div>
-
-                                {/* Muzica */}
-                                <div>
-                                    <label className="text-slate-400 text-sm">Muzica</label>
-                                    <input
-                                        name="muzica"
-                                        value={formData.muzica}
-                                        onChange={handleChange}
-                                        className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="text-slate-400 text-sm">Muzica Contact</label>
-                                    <input
-                                        name="muzicaContact"
-                                        value={formData.muzicaContact}
-                                        onChange={handleChange}
-                                        className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="text-slate-400 text-sm">Muzica Detalii</label>
-                                    <input
-                                        name="muzicaDetails"
-                                        value={formData.muzicaDetails}
-                                        onChange={handleChange}
-                                        className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
-                                    />
-                                </div>
-
-                                {/* Buttons */}
                                 <div className="lg:col-span-4 flex flex-col sm:flex-row justify-center items-center gap-4 mt-4">
                                     <button
                                         onClick={handleSubmit}
                                         disabled={loading}
                                         className="bg-blue-500 px-6 py-2 rounded-md w-full sm:w-auto disabled:opacity-50"
                                     >
-                                        {loading ? "Salvez..." : "Salveaza"}
+                                        {loading ? "Salvez..." : "Salvează"}
                                     </button>
 
                                     <button
                                         onClick={closeModal}
                                         className="bg-slate-600 px-6 py-2 rounded-md w-full sm:w-auto"
                                     >
-                                        Anuleaza
+                                        Anulează
                                     </button>
 
                                     <button
@@ -910,11 +690,10 @@ export default function Dashboard() {
                                         disabled={loading}
                                         className="bg-red-600 px-6 py-2 rounded-md w-full sm:w-auto disabled:opacity-50"
                                     >
-                                        Sterge
+                                        Șterge
                                     </button>
                                 </div>
                             </div>
-
                         </div>
                     </div>
                 )}
