@@ -17,7 +17,7 @@ app.use(express.json());
 
 const allowed = [
     "http://localhost:5173",
-    "https://allforone-theta.vercel.app",
+    "https://all-for-one-art.vercel.app/",
 ];
 
 app.use(
