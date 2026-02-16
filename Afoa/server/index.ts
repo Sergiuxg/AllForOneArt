@@ -7,7 +7,12 @@ import db from "./src/db/db";
 import { authMiddleware } from "./src/middleware/auth.middleware";
 
 const app = express();
-app.use(cors({ origin: true, allowedHeaders: ["Content-Type", "Authorization"] }));
+app.use(cors({
+    origin: true, // ✅ permite orice origin
+    credentials: true,
+    allowedHeaders: ["Content-Type", "Authorization"],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+}));
 app.use(express.json());
 
 const allowed = [
