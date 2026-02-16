@@ -11,7 +11,7 @@ import roLocale from "@fullcalendar/core/locales/ro";
 type EventForm = {
     date: string;
     time: string; // kept for form, not shown in calendar
-    type: "Nunta" | "Botez" | "Corporate";
+    type: "Nunta" | "Cumătrie" | "Altceva";
     status: "Semnat" | "In Asteptare";
     location: string;
     street: string;
@@ -413,8 +413,8 @@ export default function Dashboard() {
                                     className="w-full bg-slate-700 rounded-md p-2 mt-1"
                                 >
                                     <option value="Nunta">Nunta</option>
-                                    <option value="Botez">Cumătrie</option>
-                                    <option value="Corporate">Alteceva</option>
+                                    <option value="Cumătrie">Cumătrie</option>
+                                    <option value="Altceva">Altceva</option>
                                 </select>
                             </div>
 
@@ -645,6 +645,7 @@ export default function Dashboard() {
                             </button>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                                {/* Data */}
                                 <div>
                                     <label className="text-slate-400 text-sm">Data</label>
                                     <input
@@ -656,6 +657,7 @@ export default function Dashboard() {
                                     />
                                 </div>
 
+                                {/* Ora */}
                                 <div>
                                     <label className="text-slate-400 text-sm">Ora</label>
                                     <input
@@ -667,6 +669,7 @@ export default function Dashboard() {
                                     />
                                 </div>
 
+                                {/* Tip */}
                                 <div>
                                     <label className="text-slate-400 text-sm">Tip</label>
                                     <select
@@ -681,6 +684,7 @@ export default function Dashboard() {
                                     </select>
                                 </div>
 
+                                {/* Status */}
                                 <div>
                                     <label className="text-slate-400 text-sm">Status</label>
                                     <select
@@ -694,6 +698,19 @@ export default function Dashboard() {
                                     </select>
                                 </div>
 
+                                {/* Culoare */}
+                                <div>
+                                    <label className="text-slate-400 text-sm">Culoarea</label>
+                                    <input
+                                        type="color"
+                                        name="color"
+                                        value={formData.color}
+                                        onChange={handleChange}
+                                        className="h-10 w-16 bg-transparent mt-2"
+                                    />
+                                </div>
+
+                                {/* Locatie */}
                                 <div className="md:col-span-2">
                                     <label className="text-slate-400 text-sm">Locatia</label>
                                     <input
@@ -704,6 +721,7 @@ export default function Dashboard() {
                                     />
                                 </div>
 
+                                {/* Restaurant / Sala */}
                                 <div className="md:col-span-2">
                                     <label className="text-slate-400 text-sm">Restaurant/Sala</label>
                                     <input
@@ -714,17 +732,163 @@ export default function Dashboard() {
                                     />
                                 </div>
 
+                                {/* Detalii scurte */}
+                                <div className="lg:col-span-4">
+                                    <label className="text-slate-400 text-sm">Detalii</label>
+                                    <input
+                                        name="details"
+                                        value={formData.details}
+                                        onChange={handleChange}
+                                        className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
+                                    />
+                                </div>
+
+                                {/* Miri / Contact / Pret / Avans */}
+                                <div>
+                                    <label className="text-slate-400 text-sm">Miri</label>
+                                    <input
+                                        name="miri"
+                                        value={formData.miri}
+                                        onChange={handleChange}
+                                        className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="text-slate-400 text-sm">Contacte</label>
+                                    <input
+                                        name="contact"
+                                        value={formData.contact}
+                                        onChange={handleChange}
+                                        className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="text-slate-400 text-sm">Pret</label>
+                                    <input
+                                        name="price"
+                                        value={formData.price}
+                                        onChange={handleChange}
+                                        className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="text-slate-400 text-sm">Avans</label>
+                                    <input
+                                        name="avans"
+                                        value={formData.avans}
+                                        onChange={handleChange}
+                                        className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
+                                    />
+                                </div>
+
+                                {/* Detalii despre nunta */}
                                 <div className="lg:col-span-4">
                                     <label className="text-slate-400 text-sm">Detalii despre nunta</label>
                                     <textarea
                                         name="detailsWedding"
                                         value={formData.detailsWedding}
                                         onChange={handleChange}
-                                        className="w-full bg-transparent border-b border-slate-600 py-2 outline-none min-h-[80px]"
+                                        className="w-full bg-transparent border-b border-slate-600 py-2 outline-none min-h-[90px]"
                                     />
                                 </div>
 
-                                {/* Buttons row */}
+                                {/* Moderator */}
+                                <div>
+                                    <label className="text-slate-400 text-sm">Moderator</label>
+                                    <input
+                                        name="moderator"
+                                        value={formData.moderator}
+                                        onChange={handleChange}
+                                        className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="text-slate-400 text-sm">Moderator Contact</label>
+                                    <input
+                                        name="moderatorContact"
+                                        value={formData.moderatorContact}
+                                        onChange={handleChange}
+                                        className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="text-slate-400 text-sm">Moderator Detalii</label>
+                                    <input
+                                        name="moderatorDetails"
+                                        value={formData.moderatorDetails}
+                                        onChange={handleChange}
+                                        className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
+                                    />
+                                </div>
+
+                                {/* Foto/Video */}
+                                <div>
+                                    <label className="text-slate-400 text-sm">Foto/Video</label>
+                                    <input
+                                        name="fotoVideo"
+                                        value={formData.fotoVideo}
+                                        onChange={handleChange}
+                                        className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="text-slate-400 text-sm">Foto/Video Contact</label>
+                                    <input
+                                        name="fotoVideoContact"
+                                        value={formData.fotoVideoContact}
+                                        onChange={handleChange}
+                                        className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="text-slate-400 text-sm">Foto/Video Detalii</label>
+                                    <input
+                                        name="fotoVideoDetails"
+                                        value={formData.fotoVideoDetails}
+                                        onChange={handleChange}
+                                        className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
+                                    />
+                                </div>
+
+                                {/* Muzica */}
+                                <div>
+                                    <label className="text-slate-400 text-sm">Muzica</label>
+                                    <input
+                                        name="muzica"
+                                        value={formData.muzica}
+                                        onChange={handleChange}
+                                        className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="text-slate-400 text-sm">Muzica Contact</label>
+                                    <input
+                                        name="muzicaContact"
+                                        value={formData.muzicaContact}
+                                        onChange={handleChange}
+                                        className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="text-slate-400 text-sm">Muzica Detalii</label>
+                                    <input
+                                        name="muzicaDetails"
+                                        value={formData.muzicaDetails}
+                                        onChange={handleChange}
+                                        className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
+                                    />
+                                </div>
+
+                                {/* Buttons */}
                                 <div className="lg:col-span-4 flex flex-col sm:flex-row justify-center items-center gap-4 mt-4">
                                     <button
                                         onClick={handleSubmit}
@@ -750,6 +914,7 @@ export default function Dashboard() {
                                     </button>
                                 </div>
                             </div>
+
                         </div>
                     </div>
                 )}
