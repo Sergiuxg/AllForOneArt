@@ -666,34 +666,53 @@ export default function Dashboard() {
                                 ✕
                             </button>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                                <EventFields formData={formData} handleChange={handleChange} />
+                            {/* EDIT MODAL */}
+                            {isOpen && (
+                                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-3">
+                                    <div className="bg-slate-800 w-full max-w-6xl rounded-xl p-5 md:p-8 border border-slate-700 relative max-h-[90vh] overflow-y-auto">
+                                        <h2 className="text-xl md:text-3xl font-semibold text-center mb-6">
+                                            Modifică Eveniment
+                                        </h2>
 
-                                <div className="lg:col-span-4 flex flex-col sm:flex-row justify-center items-center gap-4 mt-4">
-                                    <button
-                                        onClick={handleSubmit}
-                                        disabled={loading}
-                                        className="bg-blue-500 px-6 py-2 rounded-md w-full sm:w-auto disabled:opacity-50"
-                                    >
-                                        {loading ? "Salvez..." : "Salvează"}
-                                    </button>
+                                        <button
+                                            onClick={closeModal}
+                                            className="absolute top-4 right-4 text-slate-400 hover:text-white"
+                                        >
+                                            ✕
+                                        </button>
 
-                                    <button
-                                        onClick={closeModal}
-                                        className="bg-slate-600 px-6 py-2 rounded-md w-full sm:w-auto"
-                                    >
-                                        Anulează
-                                    </button>
+                                        {/* AICI e cheia: toate inputurile */}
+                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                                            <EventFields formData={formData} handleChange={handleChange} />
+                                        </div>
 
-                                    <button
-                                        onClick={handleDelete}
-                                        disabled={loading}
-                                        className="bg-red-600 px-6 py-2 rounded-md w-full sm:w-auto disabled:opacity-50"
-                                    >
-                                        Șterge
-                                    </button>
+                                        <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mt-6">
+                                            <button
+                                                onClick={handleSubmit}
+                                                disabled={loading}
+                                                className="bg-blue-500 px-6 py-2 rounded-md w-full sm:w-auto disabled:opacity-50"
+                                            >
+                                                {loading ? "Salvez..." : "Salvează"}
+                                            </button>
+
+                                            <button
+                                                onClick={closeModal}
+                                                className="bg-slate-600 px-6 py-2 rounded-md w-full sm:w-auto"
+                                            >
+                                                Anulează
+                                            </button>
+
+                                            <button
+                                                onClick={handleDelete}
+                                                disabled={loading}
+                                                className="bg-red-600 px-6 py-2 rounded-md w-full sm:w-auto disabled:opacity-50"
+                                            >
+                                                Șterge
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
+                            )}
                         </div>
                     </div>
                 )}
