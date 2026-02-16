@@ -7,8 +7,6 @@ import db from "./src/db/db";
 import { authMiddleware } from "./src/middleware/auth.middleware";
 
 const app = express();
-import cors from "cors";
-
 const allowedOrigins = [
     "http://localhost:5173",
     "https://allforone-theta.vercel.app",
