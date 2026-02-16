@@ -9,6 +9,8 @@ import type { DateClickArg } from "@fullcalendar/interaction";
 type EventType = "Nunta" | "Cumătrie" | "Altceva";
 type EventStatus = "Semnat" | "In Asteptare";
 
+const [confirmOpen, setConfirmOpen] = useState(false);
+
 type EventForm = {
     date: string;
     time: string; // păstrat pentru formular (nu afișăm ora în calendar)
@@ -705,7 +707,7 @@ export default function Dashboard() {
                                             </button>
 
                                             <button
-                                                onClick={handleDelete}
+                                                onClick={() => setConfirmOpen(true)}
                                                 disabled={loading}
                                                 className="bg-red-600 px-6 py-2 rounded-md w-full sm:w-auto disabled:opacity-50"
                                             >
@@ -715,6 +717,40 @@ export default function Dashboard() {
                                     </div>
                                 </div>
                             )}
+                            {confirmOpen && (
+                                <div className="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-3">
+                                    <div className="bg-slate-800 w-full max-w-md rounded-xl p-6 border border-slate-700">
+                                        <h3 className="text-lg md:text-xl font-semibold mb-2">
+                                            Confirmare ștergere
+                                        </h3>
+
+                                        <p className="text-slate-300 text-sm mb-6">
+                                            Sigur vrei să ștergi acest eveniment? Acțiunea nu poate fi anulată.
+                                        </p>
+
+                                        <div className="flex gap-3 justify-end">
+                                            <button
+                                                onClick={() => setConfirmOpen(false)}
+                                                className="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-md"
+                                            >
+                                                Nu, renunță
+                                            </button>
+
+                                            <button
+                                                onClick={async () => {
+                                                    setConfirmOpen(false);
+                                                    await handleDelete(); // șterge efectiv
+                                                }}
+                                                disabled={loading}
+                                                className="bg-red-600 hover:bg-red-500 px-4 py-2 rounded-md disabled:opacity-50"
+                                            >
+                                                {loading ? "Se șterge..." : "Da, șterge"}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
 
                         </div>
                     </div>
