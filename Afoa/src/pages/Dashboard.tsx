@@ -9,7 +9,7 @@ import type { DateClickArg } from "@fullcalendar/interaction";
 type EventType = "Nunta" | "Cumătrie" | "Altceva";
 type EventStatus = "Semnat" | "In Asteptare";
 
-const [confirmOpen, setConfirmOpen] = useState(false);
+
 
 type EventForm = {
     date: string;
@@ -399,7 +399,7 @@ export default function Dashboard() {
     const [events, setEvents] = useState<EventInput[]>([]);
     const [loading, setLoading] = useState(false);
     const [apiError, setApiError] = useState("");
-
+    const [confirmOpen, setConfirmOpen] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
     const [editingEventId, setEditingEventId] = useState<string | null>(null);
     const [formData, setFormData] = useState<EventForm>(emptyForm);
