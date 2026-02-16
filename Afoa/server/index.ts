@@ -12,41 +12,32 @@ const allowedOrigins = [
     "https://allforone-theta.vercel.app",
 ];
 
-const allowedVercelRegex = /^https:\/\/allforone(-[a-z0-9-]+)?\.vercel\.app$/i;
-// acceptă: allforone-theta.vercel.app + preview links gen allforone-git-main-...vercel.app
-
-app.use(
-    cors({
-        origin: (origin, cb) => {
-            if (!origin) return cb(null, true); // Postman / server-to-server
-            if (allowedOrigins.includes(origin)) return cb(null, true);
-            if (allowedVercelRegex.test(origin)) return cb(null, true);
-            return cb(new Error("CORS blocked: " + origin));
-        },
-        methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-        allowedHeaders: ["Content-Type", "Authorization"],
-        credentials: true,
-    })
-);
-
 app.use(express.json());
 
 const allowed = [
     "http://localhost:5173",
-    "https://all-for-one-art.vercel.app/",
+    "https://allforone-theta.vercel.app",
+    "https://all-for-one-art.vercel.app",
 ];
 
 app.use(
     cors({
         origin: (origin, cb) => {
             if (!origin) return cb(null, true);
-            if (allowed.includes(origin)) return cb(null, true);
+
+            const ok =
+                allowed.includes(origin) ||
+                origin.endsWith(".vercel.app"); // acceptă toate domeniile Vercel
+
+            if (ok) return cb(null, true);
+
             return cb(new Error("CORS blocked: " + origin));
         },
         methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
         allowedHeaders: ["Content-Type", "Authorization"],
     })
 );
+
 
 // preflight doar pe rute concrete (fără wildcard)
 app.options("/login", cors());
