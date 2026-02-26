@@ -1,36 +1,22 @@
 import "dotenv/config";
-import express = require("express");
-import cors = require("cors");
-import jwt = require("jsonwebtoken");
-
+import express from "express";
+import cors from "cors";
+import jwt from "jsonwebtoken";
 import db from "./src/db/db";
 import { authMiddleware } from "./src/middleware/auth.middleware";
 
 const app = express();
-const allowedOrigins = [
-    "http://localhost:5173",
-    "https://allforone-theta.vercel.app",
-];
-
 app.use(express.json());
 
-const allowed = [
-    "http://localhost:5173",
-    "https://allforone-theta.vercel.app",
-    "https://all-for-one-art.vercel.app",
-];
-
+// ✅ CORS (acceptă localhost + orice *.vercel.app)
 app.use(
     cors({
         origin: (origin, cb) => {
-            if (!origin) return cb(null, true);
-
+            if (!origin) return cb(null, true); // Postman/server
             const ok =
-                allowed.includes(origin) ||
-                origin.endsWith(".vercel.app"); // acceptă toate domeniile Vercel
-
+                origin === "http://localhost:5173" ||
+                origin.endsWith(".vercel.app");
             if (ok) return cb(null, true);
-
             return cb(new Error("CORS blocked: " + origin));
         },
         methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
@@ -38,33 +24,56 @@ app.use(
     })
 );
 
-
-// preflight doar pe rute concrete (fără wildcard)
-app.options("/login", cors());
-app.options("/events", cors());
-app.options("/events/:id", cors());
-
-
-
-// ---- LOGIN: doar parola -> token
+// ---- LOGIN: parola + nume -> token
 app.post("/login", (req, res) => {
     const password = String(req.body?.password ?? "").trim();
+    const name = String(req.body?.name ?? "").trim();
     const base = String(process.env.BASE_PASSWORD ?? "").trim();
 
-    console.log("LOGIN TRY:", JSON.stringify(password), "BASE:", JSON.stringify(base));
+    if (!name) return res.status(400).json({ message: "Introduceți numele și prenumele" });
 
     if (password !== base) {
         return res.status(401).json({ message: "Parola greșită" });
     }
 
-    const token = jwt.sign({ role: "admin" }, process.env.JWT_SECRET as string, {
+    const token = jwt.sign({ role: "admin", name }, process.env.JWT_SECRET as string, {
         expiresIn: "7d",
     });
 
-    return res.json({ token });
+    return res.json({ token, name });
 });
 
-// ---- EVENTS
+// helper: citim dancers din row
+function getDancersFromRow(row: any): string[] {
+    try {
+        const parsed = row.data ? JSON.parse(row.data) : {};
+        const dancers = Array.isArray(parsed?.dancers) ? parsed.dancers : [];
+        return dancers.map(String);
+    } catch {
+        return [];
+    }
+}
+
+// ✅ Conflict check: același dansator în aceeași zi
+function hasDayConflict(date: string, dancers: string[], excludeEventId?: string) {
+    if (!date || dancers.length === 0) return null;
+
+    const rows = db.prepare("SELECT id, data FROM events WHERE start = ?").all(date);
+
+    for (const r of rows) {
+        if (excludeEventId && r.id === excludeEventId) continue;
+
+        const existingDancers = getDancersFromRow(r);
+        for (const d of dancers) {
+            if (existingDancers.includes(d)) {
+                return d; // dansator în conflict
+            }
+        }
+    }
+    return null;
+}
+
+// ---- GET EVENTS
 app.get("/events", authMiddleware, (req, res) => {
     const rows = db.prepare("SELECT * FROM events ORDER BY start ASC").all();
 
@@ -81,16 +90,26 @@ app.get("/events", authMiddleware, (req, res) => {
     res.json(result);
 });
 
+// ---- CREATE EVENT
 app.post("/events", authMiddleware, (req, res) => {
     const e = req.body ?? {};
     const now = new Date().toISOString();
 
     const safeId = String(e.id || Date.now());
-    const safeTitle = String(e.title || "Eveniment");
     const safeStart = String(e.start || new Date().toISOString().slice(0, 10));
+    const safeTitle = String(e.title || "Eveniment");
     const safeAllDay = e.allDay ? 1 : 0;
     const safeColor = String(e.backgroundColor || "black");
-    const safeData = JSON.stringify(e.extendedProps || {});
+    const safeDataObj = e.extendedProps || {};
+    const safeData = JSON.stringify(safeDataObj);
+
+    const dancers: string[] = Array.isArray(safeDataObj?.dancers) ? safeDataObj.dancers.map(String) : [];
+    const conflictDancer = hasDayConflict(safeStart, dancers);
+    if (conflictDancer) {
+        return res.status(400).json({
+            message: `Eroare: Dansatorul "${conflictDancer}" este deja selectat la alt eveniment în această zi (${safeStart}).`,
+        });
+    }
 
     db.prepare(`
     INSERT INTO events (id, title, start, allDay, color, data, createdAt, updatedAt)
@@ -100,8 +119,40 @@ app.post("/events", authMiddleware, (req, res) => {
     res.status(201).json({ ok: true });
 });
 
+// ---- UPDATE EVENT
+app.put("/events/:id", authMiddleware, (req, res) => {
+    const id = String(req.params.id);
+    const e = req.body ?? {};
+    const now = new Date().toISOString();
+
+    const safeStart = String(e.start || new Date().toISOString().slice(0, 10));
+    const safeTitle = String(e.title || "Eveniment");
+    const safeAllDay = e.allDay ? 1 : 0;
+    const safeColor = String(e.backgroundColor || "black");
+    const safeDataObj = e.extendedProps || {};
+    const safeData = JSON.stringify(safeDataObj);
+
+    const dancers: string[] = Array.isArray(safeDataObj?.dancers) ? safeDataObj.dancers.map(String) : [];
+    const conflictDancer = hasDayConflict(safeStart, dancers, id);
+    if (conflictDancer) {
+        return res.status(400).json({
+            message: `Eroare: Dansatorul "${conflictDancer}" este deja selectat la alt eveniment în această zi (${safeStart}).`,
+        });
+    }
+
+    const result = db.prepare(`
+    UPDATE events
+    SET title=?, start=?, allDay=?, color=?, data=?, updatedAt=?
+    WHERE id=?
+  `).run(safeTitle, safeStart, safeAllDay, safeColor, safeData, now, id);
+
+    if (result.changes === 0) return res.status(404).json({ message: "Nu există" });
+    res.json({ ok: true });
+});
+
+// ---- DELETE EVENT
 app.delete("/events/:id", authMiddleware, (req, res) => {
-    const id = req.params.id;
+    const id = String(req.params.id);
     const result = db.prepare("DELETE FROM events WHERE id=?").run(id);
 
     if (result.changes === 0) return res.status(404).json({ message: "Nu există" });
@@ -109,8 +160,4 @@ app.delete("/events/:id", authMiddleware, (req, res) => {
 });
 
 const PORT = Number(process.env.PORT || 3001);
-app.listen(PORT, "0.0.0.0", () => {
-    console.log("API running on", PORT);
-});
-
-
+app.listen(PORT, "0.0.0.0", () => console.log("API running on", PORT));

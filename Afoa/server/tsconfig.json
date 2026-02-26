@@ -1,5 +1,12 @@
 {
   "compilerOptions": {
-    "esModuleInterop": true
-  }
+    "target": "ES2022",
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "outDir": "dist",
+    "esModuleInterop": true,
+    "strict": true,
+    "skipLibCheck": true
+  },
+  "include": ["index.ts", "src/**/*.ts"]
 }
