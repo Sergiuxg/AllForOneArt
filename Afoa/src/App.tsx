@@ -1,11 +1,10 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import ProtectedRoute from "./auth/ProtectedRoute";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 
 export default function App() {
     return (
-        <BrowserRouter>
             <Routes>
                 <Route path="/login" element={<Login />} />
 
@@ -18,6 +17,5 @@ export default function App() {
                     }
                 />
             </Routes>
-        </BrowserRouter>
     );
 }
