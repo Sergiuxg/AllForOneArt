@@ -8,76 +8,109 @@ import { authMiddleware } from "./src/middleware/auth.middleware";
 const app = express();
 app.use(express.json());
 
-// ✅ CORS (acceptă localhost + orice *.vercel.app)
 app.use(
     cors({
         origin: (origin, cb) => {
-            if (!origin) return cb(null, true); // Postman/server
-            const ok =
-                origin === "http://localhost:5173" ||
-                origin.endsWith(".vercel.app");
-            if (ok) return cb(null, true);
+            if (!origin) return cb(null, true);
+            if (origin.endsWith(".vercel.app") || origin === "http://localhost:5173")
+                return cb(null, true);
             return cb(new Error("CORS blocked: " + origin));
         },
-        methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-        allowedHeaders: ["Content-Type", "Authorization"],
     })
 );
 
-// ---- LOGIN: parola + nume -> token
+/* =======================
+   TYPES
+======================= */
+
+type EventRow = {
+    id: string;
+    title: string;
+    start: string;
+    allDay: number;
+    color: string | null;
+    data: string | null;
+    createdAt: string;
+    updatedAt: string;
+};
+
+type EventData = {
+    dancers?: string[];
+};
+
+/* =======================
+   LOGIN
+======================= */
+
 app.post("/login", (req, res) => {
     const password = String(req.body?.password ?? "").trim();
     const name = String(req.body?.name ?? "").trim();
     const base = String(process.env.BASE_PASSWORD ?? "").trim();
 
-    if (!name) return res.status(400).json({ message: "Introduceți numele și prenumele" });
+    if (!name)
+        return res.status(400).json({ message: "Introduceți numele și prenumele" });
 
-    if (password !== base) {
+    if (password !== base)
         return res.status(401).json({ message: "Parola greșită" });
-    }
 
-    const token = jwt.sign({ role: "admin", name }, process.env.JWT_SECRET as string, {
-        expiresIn: "7d",
-    });
+    const token = jwt.sign(
+        { role: "admin", name },
+        process.env.JWT_SECRET as string,
+        { expiresIn: "7d" }
+    );
 
-    return res.json({ token, name });
+    res.json({ token, name });
 });
 
-// helper: citim dancers din row
-function getDancersFromRow(row: any): string[] {
+/* =======================
+   HELPER: Conflict Check
+======================= */
+
+function getDancersFromRow(row: EventRow): string[] {
     try {
-        const parsed = row.data ? JSON.parse(row.data) : {};
-        const dancers = Array.isArray(parsed?.dancers) ? parsed.dancers : [];
-        return dancers.map(String);
+        const parsed: EventData = row.data ? JSON.parse(row.data) : {};
+        return Array.isArray(parsed.dancers)
+            ? parsed.dancers.map(String)
+            : [];
     } catch {
         return [];
     }
 }
 
-// ✅ Conflict check: același dansator în aceeași zi
-function hasDayConflict(date: string, dancers: string[], excludeEventId?: string) {
+function hasDayConflict(
+    date: string,
+    dancers: string[],
+    excludeId?: string
+): string | null {
     if (!date || dancers.length === 0) return null;
 
-    const rows = db.prepare("SELECT id, data FROM events WHERE start = ?").all(date);
+    const rows = db
+        .prepare("SELECT id, data FROM events WHERE start = ?")
+        .all(date) as EventRow[];
 
     for (const r of rows) {
-        if (excludeEventId && r.id === excludeEventId) continue;
+        if (excludeId && r.id === excludeId) continue;
 
-        const existingDancers = getDancersFromRow(r);
-        for (const d of dancers) {
-            if (existingDancers.includes(d)) {
-                return d; // dansator în conflict
-            }
+        const existing = getDancersFromRow(r);
+
+        for (const dancer of dancers) {
+            if (existing.includes(dancer)) return dancer;
         }
     }
+
     return null;
 }
 
-// ---- GET EVENTS
-app.get("/events", authMiddleware, (req, res) => {
-    const rows = db.prepare("SELECT * FROM events ORDER BY start ASC").all();
+/* =======================
+   GET EVENTS
+======================= */
 
-    const result = rows.map((r: any) => ({
+app.get("/events", authMiddleware, (req, res) => {
+    const rows = db
+        .prepare("SELECT * FROM events ORDER BY start ASC")
+        .all() as EventRow[];
+
+    const result = rows.map((r) => ({
         id: r.id,
         title: r.title,
         start: r.start,
@@ -90,24 +123,31 @@ app.get("/events", authMiddleware, (req, res) => {
     res.json(result);
 });
 
-// ---- CREATE EVENT
+/* =======================
+   CREATE EVENT
+======================= */
+
 app.post("/events", authMiddleware, (req, res) => {
     const e = req.body ?? {};
     const now = new Date().toISOString();
 
     const safeId = String(e.id || Date.now());
-    const safeStart = String(e.start || new Date().toISOString().slice(0, 10));
     const safeTitle = String(e.title || "Eveniment");
+    const safeStart = String(e.start);
     const safeAllDay = e.allDay ? 1 : 0;
     const safeColor = String(e.backgroundColor || "black");
-    const safeDataObj = e.extendedProps || {};
-    const safeData = JSON.stringify(safeDataObj);
+    const safeData = JSON.stringify(e.extendedProps || {});
 
-    const dancers: string[] = Array.isArray(safeDataObj?.dancers) ? safeDataObj.dancers.map(String) : [];
-    const conflictDancer = hasDayConflict(safeStart, dancers);
-    if (conflictDancer) {
+    const dancers: string[] =
+        Array.isArray(e.extendedProps?.dancers)
+            ? e.extendedProps.dancers.map(String)
+            : [];
+
+    const conflict = hasDayConflict(safeStart, dancers);
+
+    if (conflict) {
         return res.status(400).json({
-            message: `Eroare: Dansatorul "${conflictDancer}" este deja selectat la alt eveniment în această zi (${safeStart}).`,
+            message: `Eroare: Dansatorul "${conflict}" este deja programat în această zi.`,
         });
     }
 
@@ -119,45 +159,61 @@ app.post("/events", authMiddleware, (req, res) => {
     res.status(201).json({ ok: true });
 });
 
-// ---- UPDATE EVENT
+/* =======================
+   UPDATE EVENT
+======================= */
+
 app.put("/events/:id", authMiddleware, (req, res) => {
     const id = String(req.params.id);
     const e = req.body ?? {};
     const now = new Date().toISOString();
 
-    const safeStart = String(e.start || new Date().toISOString().slice(0, 10));
+    const safeStart = String(e.start);
     const safeTitle = String(e.title || "Eveniment");
     const safeAllDay = e.allDay ? 1 : 0;
     const safeColor = String(e.backgroundColor || "black");
-    const safeDataObj = e.extendedProps || {};
-    const safeData = JSON.stringify(safeDataObj);
+    const safeData = JSON.stringify(e.extendedProps || {});
 
-    const dancers: string[] = Array.isArray(safeDataObj?.dancers) ? safeDataObj.dancers.map(String) : [];
-    const conflictDancer = hasDayConflict(safeStart, dancers, id);
-    if (conflictDancer) {
+    const dancers: string[] =
+        Array.isArray(e.extendedProps?.dancers)
+            ? e.extendedProps.dancers.map(String)
+            : [];
+
+    const conflict = hasDayConflict(safeStart, dancers, id);
+
+    if (conflict) {
         return res.status(400).json({
-            message: `Eroare: Dansatorul "${conflictDancer}" este deja selectat la alt eveniment în această zi (${safeStart}).`,
+            message: `Eroare: Dansatorul "${conflict}" este deja programat în această zi.`,
         });
     }
 
-    const result = db.prepare(`
+    db.prepare(`
     UPDATE events
     SET title=?, start=?, allDay=?, color=?, data=?, updatedAt=?
     WHERE id=?
   `).run(safeTitle, safeStart, safeAllDay, safeColor, safeData, now, id);
 
-    if (result.changes === 0) return res.status(404).json({ message: "Nu există" });
     res.json({ ok: true });
 });
 
-// ---- DELETE EVENT
+/* =======================
+   DELETE EVENT
+======================= */
+
 app.delete("/events/:id", authMiddleware, (req, res) => {
     const id = String(req.params.id);
-    const result = db.prepare("DELETE FROM events WHERE id=?").run(id);
 
-    if (result.changes === 0) return res.status(404).json({ message: "Nu există" });
+    db.prepare("DELETE FROM events WHERE id=?").run(id);
+
     res.json({ ok: true });
 });
 
+/* =======================
+   START SERVER
+======================= */
+
 const PORT = Number(process.env.PORT || 3001);
-app.listen(PORT, "0.0.0.0", () => console.log("API running on", PORT));
+
+app.listen(PORT, "0.0.0.0", () => {
+    console.log("API running on", PORT);
+});
