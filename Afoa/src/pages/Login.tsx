@@ -14,21 +14,29 @@ export default function Login() {
         try {
             setError("");
 
+            // validare frontend
+            if (!name.trim() || !password.trim()) {
+                setError("Completează toate câmpurile");
+                return;
+            }
+
             const res = await fetch(`${API_URL}/login`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ password }),
+                body: JSON.stringify({
+                    name: name.trim(),     // 👈 TRIMIȚI ȘI NUMELE
+                    password: password.trim(),
+                }),
             });
-
-            if (!res.ok) {
-                const data = await res.json();
-                throw new Error(data?.message || "Login failed");
-            }
 
             const data = await res.json();
 
+            if (!res.ok) {
+                throw new Error(data?.message || "Login failed");
+            }
+
             localStorage.setItem("token", data.token);
-            localStorage.setItem("userName", name);
+            localStorage.setItem("userName", name.trim());
 
             navigate("/");
         } catch (e: any) {
