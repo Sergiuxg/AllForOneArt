@@ -4,6 +4,7 @@ import cors from "cors";
 import jwt from "jsonwebtoken";
 import db from "./src/db/db";
 import { authMiddleware } from "./src/middleware/auth.middleware";
+import { dancers } from "./src/dancers"
 
 const app = express();
 app.use(express.json());
@@ -43,18 +44,22 @@ type EventData = {
 ======================= */
 
 app.post("/login", (req, res) => {
-    const password = String(req.body?.password ?? "").trim();
     const name = String(req.body?.name ?? "").trim();
-    const base = String(process.env.BASE_PASSWORD ?? "").trim();
+    const password = String(req.body?.password ?? "").trim();
 
-    if (!name)
-        return res.status(400).json({ message: "Introduceți numele și prenumele" });
+    const basePassword = String(process.env.BASE_PASSWORD ?? "").trim();
 
-    if (password !== base)
+    if (!name || !password)
+        return res.status(400).json({ message: "Completează toate câmpurile" });
+
+    if (!dancers.includes(name))
+        return res.status(401).json({ message: "Nu ești în lista dansatorilor" });
+
+    if (password !== basePassword)
         return res.status(401).json({ message: "Parola greșită" });
 
     const token = jwt.sign(
-        { role: "admin", name },
+        { role: "dancer", name },
         process.env.JWT_SECRET as string,
         { expiresIn: "7d" }
     );
@@ -216,4 +221,8 @@ const PORT = Number(process.env.PORT || 3001);
 
 app.listen(PORT, "0.0.0.0", () => {
     console.log("API running on", PORT);
+});
+
+app.get("/dancers", authMiddleware, (req, res) => {
+    res.json(dancers);
 });

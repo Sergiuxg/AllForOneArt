@@ -1,72 +1,72 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-const API_URL = (import.meta as any).env?.VITE_API_URL || "http://localhost:3001";
+const API_URL =
+    (import.meta as any).env?.VITE_API_URL || "http://localhost:3001";
 
 export default function Login() {
     const [name, setName] = useState("");
     const [password, setPassword] = useState("");
-    const [err, setErr] = useState<string | null>(null);
-    const [loading, setLoading] = useState(false);
-    const nav = useNavigate();
+    const [error, setError] = useState("");
+    const navigate = useNavigate();
 
-    const submit = async () => {
-        setErr(null);
-        setLoading(true);
+    const handleLogin = async () => {
         try {
+            setError("");
+
             const res = await fetch(`${API_URL}/login`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ name, password }),
+                body: JSON.stringify({ password }),
             });
 
-            const data = await res.json().catch(() => ({}));
-
             if (!res.ok) {
-                setErr(data?.message || "Login eșuat");
-                return;
+                const data = await res.json();
+                throw new Error(data?.message || "Login failed");
             }
 
+            const data = await res.json();
+
             localStorage.setItem("token", data.token);
-            localStorage.setItem("userName", data.name || name);
-            nav("/", { replace: true });
-        } catch {
-            setErr("Failed to fetch (verifică API_URL / CORS / server pornit)");
-        } finally {
-            setLoading(false);
+            localStorage.setItem("userName", name);
+
+            navigate("/");
+        } catch (e: any) {
+            setError(e.message);
         }
     };
 
     return (
-        <div className="min-h-screen w-screen bg-gradient-to-br from-slate-900 to-slate-800 text-slate-100 flex items-center justify-center p-4">
-            <div className="w-full max-w-md bg-slate-900/70 border border-slate-700 rounded-2xl p-6">
-                <h1 className="text-2xl font-semibold text-center mb-6">Login</h1>
+        <div className="h-screen flex items-center justify-center bg-slate-900 text-white">
+            <div className="bg-slate-800 p-8 rounded-xl w-96 space-y-4">
+                <h2 className="text-xl font-semibold text-center">Login</h2>
 
-                {err && <div className="mb-4 bg-red-500/20 text-red-300 p-3 rounded-lg">{err}</div>}
+                {error && (
+                    <div className="bg-red-500/20 p-2 rounded text-red-300">
+                        {error}
+                    </div>
+                )}
 
-                <label className="text-slate-300 text-sm">Nume și prenume</label>
                 <input
-                    className="w-full mt-1 mb-4 bg-transparent border border-slate-700 rounded-lg p-3 outline-none"
+                    placeholder="Nume și Prenume"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder="Gorceag Sergiu"
+                    className="w-full bg-slate-700 p-2 rounded"
                 />
 
-                <label className="text-slate-300 text-sm">Parola</label>
                 <input
-                    className="w-full mt-1 mb-6 bg-transparent border border-slate-700 rounded-lg p-3 outline-none"
+                    type="password"
+                    placeholder="Parola"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Afoa!1234"
-                    type="password"
+                    className="w-full bg-slate-700 p-2 rounded"
                 />
 
                 <button
-                    onClick={submit}
-                    disabled={loading}
-                    className="w-full bg-pink-600 hover:bg-pink-500 transition rounded-lg py-3 font-semibold disabled:opacity-60"
+                    onClick={handleLogin}
+                    className="w-full bg-red-600 py-2 rounded hover:bg-red-500"
                 >
-                    {loading ? "Se loghează..." : "Intră"}
+                    Intră
                 </button>
             </div>
         </div>

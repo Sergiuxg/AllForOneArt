@@ -56,15 +56,6 @@ const API_URL = (import.meta as any).env?.VITE_API_URL || "http://localhost:3001
 const TOKEN_KEY = "token";
 const USER_KEY = "userName";
 
-// ✅ înlocuiești cu lista ta completă
-const DANCERS_LIST = [
-    "Gorceag Sergiu",
-    "Popescu Ana",
-    "Ionescu Mihai",
-    "Rusu Maria",
-    "Balan Andrei",
-    "Ceban Elena",
-];
 
 function getToken() {
     return localStorage.getItem(TOKEN_KEY) || "";
@@ -179,6 +170,8 @@ export default function Dashboard() {
 
     const [formError, setFormError] = useState<string | null>(null);        // ✅ eroare în modal/form
     const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);      // ✅ confirm delete
+    const [dancers, setDancers] = useState<string[]>([]);
+
 
     const userName = getUserName();
 
@@ -215,6 +208,20 @@ export default function Dashboard() {
         reloadEvents();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    useEffect(() => {
+        const token = localStorage.getItem("token");
+
+        fetch("https://allforoneart.onrender.com/dancers", {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        })
+            .then(res => res.json())
+            .then(setDancers);
+    }, []);
+
+
 
     // ----------------------------
     // ✅ Prevent duplicate dancer in same event (frontend)
@@ -374,31 +381,48 @@ export default function Dashboard() {
     // ----------------------------
     const renderDancersSelects = () => {
         const nr = Math.max(1, Math.min(4, Number(formData.nrPerechi || 1)));
-        const dancers = ensureDancersLength(formData.dancers || [], nr);
+
+        // dansatorii selectați în formular (nu lista globală!)
+        const dancersSelected = ensureDancersLength(
+            formData.dancers || [],
+            nr
+        );
 
         return (
             <div className="lg:col-span-4">
-                <label className="text-slate-400 text-sm">Dansatori (Nr. perechi: {nr})</label>
+                <label className="text-slate-400 text-sm">
+                    Dansatori (Nr. perechi: {nr})
+                </label>
 
                 <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                     {Array.from({ length: nr * 2 }).map((_, idx) => (
-                        <div key={idx} className="bg-slate-900/40 border border-slate-700 rounded-lg p-3">
-                            <div className="text-xs text-slate-400 mb-2">Dansator #{idx + 1}</div>
+                        <div
+                            key={idx}
+                            className="bg-slate-900/40 border border-slate-700 rounded-lg p-3"
+                        >
+                            <div className="text-xs text-slate-400 mb-2">
+                                Dansator #{idx + 1}
+                            </div>
 
                             <select
-                                value={dancers[idx] || ""}
-                                onChange={(e) => handleDancerChange(idx, e.target.value)}
+                                value={dancersSelected[idx] || ""}
+                                onChange={(e) =>
+                                    handleDancerChange(idx, e.target.value)
+                                }
                                 className="w-full bg-slate-700 rounded-md p-2 outline-none"
                             >
                                 <option value="">Selectează</option>
 
-                                {DANCERS_LIST.map((d) => (
+                                {dancers.map((name) => (
                                     <option
-                                        key={d}
-                                        value={d}
-                                        disabled={dancers.includes(d) && dancers[idx] !== d}
+                                        key={name}
+                                        value={name}
+                                        disabled={
+                                            dancersSelected.includes(name) &&
+                                            dancersSelected[idx] !== name
+                                        }
                                     >
-                                        {d}
+                                        {name}
                                     </option>
                                 ))}
                             </select>
