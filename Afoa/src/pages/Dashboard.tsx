@@ -579,13 +579,13 @@ export default function Dashboard() {
                             <div>
                                 <label className="text-slate-400 text-sm">Data</label>
                                 <input type="date" name="date" value={formData.date} onChange={handleChange}
-                                       className="w-full bg-transparent border-b border-slate-600 py-2 outline-none" />
+                                       className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"/>
                             </div>
 
                             <div>
                                 <label className="text-slate-400 text-sm">Ora (opțional)</label>
                                 <input type="time" name="time" value={formData.time} onChange={handleChange}
-                                       className="w-full bg-transparent border-b border-slate-600 py-2 outline-none" />
+                                       className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"/>
                             </div>
 
                             <div>
@@ -610,7 +610,7 @@ export default function Dashboard() {
                             <div>
                                 <label className="text-slate-400 text-sm">Culoarea</label>
                                 <input type="color" name="color" value={formData.color} onChange={handleChange}
-                                       className="h-10 w-16 bg-transparent mt-2" />
+                                       className="h-10 w-16 bg-transparent mt-2"/>
                             </div>
 
                             <div>
@@ -628,104 +628,103 @@ export default function Dashboard() {
                             </div>
 
                             {renderDancersSelects()}
-
-                            <div>
-                                <label className="text-slate-400 text-sm">Locația</label>
-                                <input name="location" value={formData.location} onChange={handleChange}
-                                       className="w-full bg-transparent border-b border-slate-600 py-2 outline-none" />
-                            </div>
-
                             <div>
                                 <label className="text-slate-400 text-sm">Restaurant/Sala</label>
                                 <input name="street" value={formData.street} onChange={handleChange}
-                                       className="w-full bg-transparent border-b border-slate-600 py-2 outline-none" />
+                                       className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"/>
                             </div>
+                            <div>
+                                <label className="text-slate-400 text-sm">Locația</label>
+                                <input name="location" value={formData.location} onChange={handleChange}
+                                       className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"/>
+                            </div>
+
 
                             <div>
                                 <label className="text-slate-400 text-sm">Detalii</label>
                                 <input name="details" value={formData.details} onChange={handleChange}
-                                       className="w-full bg-transparent border-b border-slate-600 py-2 outline-none" />
+                                       className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"/>
                             </div>
 
                             <div>
                                 <label className="text-slate-400 text-sm">Miri</label>
                                 <input name="miri" value={formData.miri} onChange={handleChange}
-                                       className="w-full bg-transparent border-b border-slate-600 py-2 outline-none" />
+                                       className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"/>
                             </div>
 
                             <div>
                                 <label className="text-slate-400 text-sm">Contact</label>
                                 <input name="contact" value={formData.contact} onChange={handleChange}
-                                       className="w-full bg-transparent border-b border-slate-600 py-2 outline-none" />
+                                       className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"/>
                             </div>
 
                             <div>
                                 <label className="text-slate-400 text-sm">Preț</label>
                                 <input name="price" value={formData.price} onChange={handleChange}
-                                       className="w-full bg-transparent border-b border-slate-600 py-2 outline-none" />
+                                       className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"/>
                             </div>
 
                             <div>
                                 <label className="text-slate-400 text-sm">Avans</label>
                                 <input name="avans" value={formData.avans} onChange={handleChange}
-                                       className="w-full bg-transparent border-b border-slate-600 py-2 outline-none" />
+                                       className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"/>
                             </div>
 
                             <div className="md:col-span-2 xl:col-span-3">
                                 <label className="text-slate-400 text-sm">Detalii despre eveniment</label>
                                 <textarea name="detailsWedding" value={formData.detailsWedding} onChange={handleChange}
-                                          className="w-full bg-transparent border-b border-slate-600 py-2 outline-none min-h-[90px]" />
+                                          className="w-full bg-transparent border-b border-slate-600 py-2 outline-none min-h-[90px]"/>
                             </div>
 
                             {/* Moderator */}
                             <div>
                                 <label className="text-slate-400 text-sm">Moderator</label>
                                 <input name="moderator" value={formData.moderator} onChange={handleChange}
-                                       className="w-full bg-transparent border-b border-slate-600 py-2 outline-none" />
+                                       className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"/>
                             </div>
                             <div>
                                 <label className="text-slate-400 text-sm">Moderator Contact</label>
                                 <input name="moderatorContact" value={formData.moderatorContact} onChange={handleChange}
-                                       className="w-full bg-transparent border-b border-slate-600 py-2 outline-none" />
+                                       className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"/>
                             </div>
                             <div>
                                 <label className="text-slate-400 text-sm">Moderator Detalii</label>
                                 <input name="moderatorDetails" value={formData.moderatorDetails} onChange={handleChange}
-                                       className="w-full bg-transparent border-b border-slate-600 py-2 outline-none" />
+                                       className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"/>
                             </div>
 
                             {/* Foto/Video */}
                             <div>
                                 <label className="text-slate-400 text-sm">Foto/Video</label>
                                 <input name="fotoVideo" value={formData.fotoVideo} onChange={handleChange}
-                                       className="w-full bg-transparent border-b border-slate-600 py-2 outline-none" />
+                                       className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"/>
                             </div>
                             <div>
                                 <label className="text-slate-400 text-sm">Foto/Video Contact</label>
                                 <input name="fotoVideoContact" value={formData.fotoVideoContact} onChange={handleChange}
-                                       className="w-full bg-transparent border-b border-slate-600 py-2 outline-none" />
+                                       className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"/>
                             </div>
                             <div>
                                 <label className="text-slate-400 text-sm">Foto/Video Detalii</label>
                                 <input name="fotoVideoDetails" value={formData.fotoVideoDetails} onChange={handleChange}
-                                       className="w-full bg-transparent border-b border-slate-600 py-2 outline-none" />
+                                       className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"/>
                             </div>
 
                             {/* Muzica */}
                             <div>
                                 <label className="text-slate-400 text-sm">Muzică</label>
                                 <input name="muzica" value={formData.muzica} onChange={handleChange}
-                                       className="w-full bg-transparent border-b border-slate-600 py-2 outline-none" />
+                                       className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"/>
                             </div>
                             <div>
                                 <label className="text-slate-400 text-sm">Muzică Contact</label>
                                 <input name="muzicaContact" value={formData.muzicaContact} onChange={handleChange}
-                                       className="w-full bg-transparent border-b border-slate-600 py-2 outline-none" />
+                                       className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"/>
                             </div>
                             <div>
                                 <label className="text-slate-400 text-sm">Muzică Detalii</label>
                                 <input name="muzicaDetails" value={formData.muzicaDetails} onChange={handleChange}
-                                       className="w-full bg-transparent border-b border-slate-600 py-2 outline-none" />
+                                       className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"/>
                             </div>
                         </div>
 
@@ -734,7 +733,7 @@ export default function Dashboard() {
                                 onClick={() => setActiveView("calendar")}
                                 className="bg-slate-700 hover:bg-slate-600 px-6 py-2 rounded-lg"
                             >
-                                Înapoi la Calendar
+                            Înapoi la Calendar
                             </button>
 
                             <button
@@ -768,13 +767,13 @@ export default function Dashboard() {
                                 <div>
                                     <label className="text-slate-400 text-sm">Data</label>
                                     <input type="date" name="date" value={formData.date} onChange={handleChange}
-                                           className="w-full bg-transparent border-b border-slate-600 py-2 outline-none" />
+                                           className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"/>
                                 </div>
 
                                 <div>
                                     <label className="text-slate-400 text-sm">Ora</label>
                                     <input type="time" name="time" value={formData.time} onChange={handleChange}
-                                           className="w-full bg-transparent border-b border-slate-600 py-2 outline-none" />
+                                           className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"/>
                                 </div>
 
                                 <div>
@@ -799,7 +798,7 @@ export default function Dashboard() {
                                 <div>
                                     <label className="text-slate-400 text-sm">Culoarea</label>
                                     <input type="color" name="color" value={formData.color} onChange={handleChange}
-                                           className="h-10 w-16 bg-transparent mt-2" />
+                                           className="h-10 w-16 bg-transparent mt-2"/>
                                 </div>
 
                                 <div>
@@ -817,108 +816,113 @@ export default function Dashboard() {
                                 </div>
 
                                 {renderDancersSelects()}
-
-                                <div className="md:col-span-2">
-                                    <label className="text-slate-400 text-sm">Locația</label>
-                                    <input name="location" value={formData.location} onChange={handleChange}
-                                           className="w-full border border-pink-500 rounded-md p-2 bg-transparent outline-none" />
-                                </div>
-
                                 <div className="md:col-span-2">
                                     <label className="text-slate-400 text-sm">Restaurant/Sala</label>
                                     <input name="street" value={formData.street} onChange={handleChange}
-                                           className="w-full border border-pink-500 rounded-md p-2 bg-transparent outline-none" />
+                                           className="w-full border border-pink-500 rounded-md p-2 bg-transparent outline-none"/>
                                 </div>
+                                <div className="md:col-span-2">
+                                    <label className="text-slate-400 text-sm">Locația</label>
+                                    <input name="location" value={formData.location} onChange={handleChange}
+                                           className="w-full border border-pink-500 rounded-md p-2 bg-transparent outline-none"/>
+                                </div>
+
 
                                 <div className="lg:col-span-4">
                                     <label className="text-slate-400 text-sm">Detalii</label>
                                     <input name="details" value={formData.details} onChange={handleChange}
-                                           className="w-full bg-transparent border-b border-slate-600 py-2 outline-none" />
+                                           className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"/>
                                 </div>
 
                                 <div>
                                     <label className="text-slate-400 text-sm">Miri</label>
                                     <input name="miri" value={formData.miri} onChange={handleChange}
-                                           className="w-full bg-transparent border-b border-slate-600 py-2 outline-none" />
+                                           className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"/>
                                 </div>
 
                                 <div>
                                     <label className="text-slate-400 text-sm">Contact</label>
                                     <input name="contact" value={formData.contact} onChange={handleChange}
-                                           className="w-full bg-transparent border-b border-slate-600 py-2 outline-none" />
+                                           className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"/>
                                 </div>
 
                                 <div>
                                     <label className="text-slate-400 text-sm">Preț</label>
                                     <input name="price" value={formData.price} onChange={handleChange}
-                                           className="w-full bg-transparent border-b border-slate-600 py-2 outline-none" />
+                                           className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"/>
                                 </div>
 
                                 <div>
                                     <label className="text-slate-400 text-sm">Avans</label>
                                     <input name="avans" value={formData.avans} onChange={handleChange}
-                                           className="w-full bg-transparent border-b border-slate-600 py-2 outline-none" />
+                                           className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"/>
                                 </div>
 
                                 <div className="lg:col-span-4">
                                     <label className="text-slate-400 text-sm">Detalii despre eveniment</label>
-                                    <textarea name="detailsWedding" value={formData.detailsWedding} onChange={handleChange}
-                                              className="w-full bg-transparent border-b border-slate-600 py-2 outline-none min-h-[90px]" />
+                                    <textarea name="detailsWedding" value={formData.detailsWedding}
+                                              onChange={handleChange}
+                                              className="w-full bg-transparent border-b border-slate-600 py-2 outline-none min-h-[90px]"/>
                                 </div>
 
                                 {/* Moderator */}
                                 <div>
                                     <label className="text-slate-400 text-sm">Moderator</label>
                                     <input name="moderator" value={formData.moderator} onChange={handleChange}
-                                           className="w-full bg-transparent border-b border-slate-600 py-2 outline-none" />
+                                           className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"/>
                                 </div>
                                 <div>
                                     <label className="text-slate-400 text-sm">Moderator Contact</label>
-                                    <input name="moderatorContact" value={formData.moderatorContact} onChange={handleChange}
-                                           className="w-full bg-transparent border-b border-slate-600 py-2 outline-none" />
+                                    <input name="moderatorContact" value={formData.moderatorContact}
+                                           onChange={handleChange}
+                                           className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"/>
                                 </div>
                                 <div>
                                     <label className="text-slate-400 text-sm">Moderator Detalii</label>
-                                    <input name="moderatorDetails" value={formData.moderatorDetails} onChange={handleChange}
-                                           className="w-full bg-transparent border-b border-slate-600 py-2 outline-none" />
+                                    <input name="moderatorDetails" value={formData.moderatorDetails}
+                                           onChange={handleChange}
+                                           className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"/>
                                 </div>
 
                                 {/* Foto/Video */}
                                 <div>
                                     <label className="text-slate-400 text-sm">Foto/Video</label>
                                     <input name="fotoVideo" value={formData.fotoVideo} onChange={handleChange}
-                                           className="w-full bg-transparent border-b border-slate-600 py-2 outline-none" />
+                                           className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"/>
                                 </div>
                                 <div>
                                     <label className="text-slate-400 text-sm">Foto/Video Contact</label>
-                                    <input name="fotoVideoContact" value={formData.fotoVideoContact} onChange={handleChange}
-                                           className="w-full bg-transparent border-b border-slate-600 py-2 outline-none" />
+                                    <input name="fotoVideoContact" value={formData.fotoVideoContact}
+                                           onChange={handleChange}
+                                           className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"/>
                                 </div>
                                 <div>
                                     <label className="text-slate-400 text-sm">Foto/Video Detalii</label>
-                                    <input name="fotoVideoDetails" value={formData.fotoVideoDetails} onChange={handleChange}
-                                           className="w-full bg-transparent border-b border-slate-600 py-2 outline-none" />
+                                    <input name="fotoVideoDetails" value={formData.fotoVideoDetails}
+                                           onChange={handleChange}
+                                           className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"/>
                                 </div>
 
                                 {/* Muzica */}
                                 <div>
                                     <label className="text-slate-400 text-sm">Muzică</label>
                                     <input name="muzica" value={formData.muzica} onChange={handleChange}
-                                           className="w-full bg-transparent border-b border-slate-600 py-2 outline-none" />
+                                           className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"/>
                                 </div>
                                 <div>
                                     <label className="text-slate-400 text-sm">Muzică Contact</label>
                                     <input name="muzicaContact" value={formData.muzicaContact} onChange={handleChange}
-                                           className="w-full bg-transparent border-b border-slate-600 py-2 outline-none" />
+                                           className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"/>
                                 </div>
                                 <div>
                                     <label className="text-slate-400 text-sm">Muzică Detalii</label>
                                     <input name="muzicaDetails" value={formData.muzicaDetails} onChange={handleChange}
-                                           className="w-full bg-transparent border-b border-slate-600 py-2 outline-none" />
+                                           className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"/>
                                 </div>
 
                                 {/* Buttons */}
-                                <div className="lg:col-span-4 flex flex-col sm:flex-row justify-center items-center gap-4 mt-4">
+                                <div
+                                    className="lg:col-span-4 flex flex-col sm:flex-row justify-center items-center gap-4 mt-4">
                                     <button
                                         onClick={handleSubmit}
                                         disabled={loading}
@@ -947,7 +951,8 @@ export default function Dashboard() {
                             {/* CONFIRM DELETE MODAL */}
                             {deleteConfirmOpen && (
                                 <div className="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4">
-                                    <div className="w-full max-w-md bg-slate-900 border border-slate-700 rounded-2xl p-6">
+                                    <div
+                                        className="w-full max-w-md bg-slate-900 border border-slate-700 rounded-2xl p-6">
                                         <h3 className="text-lg font-semibold mb-3">Confirmare ștergere</h3>
                                         <p className="text-slate-300 mb-6">
                                             Sigur vrei să ștergi acest eveniment? Acțiunea nu poate fi anulată.
