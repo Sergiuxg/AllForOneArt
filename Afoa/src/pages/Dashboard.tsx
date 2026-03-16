@@ -264,8 +264,8 @@ export default function Dashboard() {
         const eventId = id || editingEventId || Date.now().toString();
         const safeDate = formData.date || new Date().toISOString().slice(0, 10);
 
-        const safeTitle = formData.location
-            ? `${formData.type} - ${formData.street.trim()}`
+        const safeTitle = formData.street
+            ? `${formData.type} - ${formData.street}`
             : `${formData.type} - Eveniment`;
 
         return {
@@ -277,12 +277,10 @@ export default function Dashboard() {
             borderColor: formData.color || "black",
             extendedProps: {
                 ...formData,
-                // ✅ curățăm dancers (fără stringuri goale)
                 dancers: (formData.dancers || []).map(String),
             },
         };
     };
-
     const handleEventClick = (info: EventClickArg) => {
         const event = info?.event;
         if (!event) return;
