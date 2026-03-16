@@ -265,7 +265,7 @@ export default function Dashboard() {
         const safeDate = formData.date || new Date().toISOString().slice(0, 10);
 
         const safeTitle = formData.location
-            ? `${formData.type} - ${formData.location}`
+            ? `${formData.type} - ${formData.street.trim()}`
             : `${formData.type} - Eveniment`;
 
         return {
