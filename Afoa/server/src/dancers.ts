@@ -2,7 +2,7 @@ export const dancers = [
     "Sergiu Gorceag",
     "Corneliu Spînu",
     "Călin Pahomi",
-    "Artur Burciu",
+    "Burciu Artur",
     "Andrei Luceac",
     "Mihai Cernalevschi",
     "Victor Vition",
