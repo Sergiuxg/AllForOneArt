@@ -22,8 +22,8 @@ type EventForm = {
     price: string;
     avans: string;
 
-    nrPerechi: number;           // ✅ nou
-    dancers: string[];           // ✅ nou (2*nrPerechi)
+    nrPerechi: number;
+    dancers: string[];
 
     detailsWedding: string;
 
@@ -45,21 +45,23 @@ type EventForm = {
 type ApiEvent = {
     id: string;
     title: string;
-    start: string; // YYYY-MM-DD
+    start: string;
     allDay: boolean;
     backgroundColor?: string;
     borderColor?: string;
     extendedProps?: Partial<EventForm>;
 };
 
-const API_URL = (import.meta as any).env?.VITE_API_URL || "http://localhost:3001";
+const API_URL =
+    (import.meta as any).env?.VITE_API_URL || "http://localhost:3001";
+
 const TOKEN_KEY = "token";
 const USER_KEY = "userName";
-
 
 function getToken() {
     return localStorage.getItem(TOKEN_KEY) || "";
 }
+
 function getUserName() {
     return localStorage.getItem(USER_KEY) || "";
 }
@@ -76,9 +78,9 @@ async function apiRequest(path: string, options: RequestInit = {}) {
         },
     });
 
-    // ✅ dacă token invalid -> logout
     if (res.status === 401) {
         localStorage.removeItem(TOKEN_KEY);
+        localStorage.removeItem(USER_KEY);
         window.location.href = "/login";
         throw new Error("Unauthorized");
     }
@@ -108,11 +110,17 @@ async function fetchEventsApi(): Promise<EventInput[]> {
 }
 
 async function createEventApi(payload: ApiEvent) {
-    await apiRequest("/events", { method: "POST", body: JSON.stringify(payload) });
+    await apiRequest("/events", {
+        method: "POST",
+        body: JSON.stringify(payload),
+    });
 }
 
 async function updateEventApi(id: string, payload: ApiEvent) {
-    await apiRequest(`/events/${id}`, { method: "PUT", body: JSON.stringify(payload) });
+    await apiRequest(`/events/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(payload),
+    });
 }
 
 async function deleteEventApi(id: string) {
@@ -159,7 +167,10 @@ export default function Dashboard() {
         []
     );
 
-    const [activeView, setActiveView] = useState<"calendar" | "newEvent" | "myEvents">("calendar");
+    const [activeView, setActiveView] = useState<
+        "calendar" | "newEvent" | "myEvents" | "stats"
+    >("calendar");
+
     const [events, setEvents] = useState<EventInput[]>([]);
     const [loading, setLoading] = useState(false);
     const [apiError, setApiError] = useState<string>("");
@@ -168,10 +179,9 @@ export default function Dashboard() {
     const [editingEventId, setEditingEventId] = useState<string | null>(null);
     const [formData, setFormData] = useState<EventForm>(emptyForm);
 
-    const [formError, setFormError] = useState<string | null>(null);        // ✅ eroare în modal/form
-    const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);      // ✅ confirm delete
+    const [formError, setFormError] = useState<string | null>(null);
+    const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
     const [dancers, setDancers] = useState<string[]>([]);
-
 
     const userName = getUserName();
 
@@ -206,32 +216,41 @@ export default function Dashboard() {
 
     useEffect(() => {
         reloadEvents();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
-        const token = localStorage.getItem("token");
+        const token = localStorage.getItem(TOKEN_KEY);
 
-        fetch("https://allforoneart.onrender.com/dancers", {
+        fetch(`${API_URL}/dancers`, {
             headers: {
-                Authorization: `Bearer ${token}`,
+                Authorization: token ? `Bearer ${token}` : "",
             },
         })
-            .then(res => res.json())
-            .then(setDancers);
+            .then((res) => {
+                if (!res.ok) throw new Error("Eroare la încărcarea dansatorilor");
+                return res.json();
+            })
+            .then((data) => {
+                if (Array.isArray(data)) {
+                    setDancers(data);
+                } else {
+                    setDancers([]);
+                }
+            })
+            .catch(() => {
+                setDancers([]);
+            });
     }, []);
 
-
-
-    // ----------------------------
-    // ✅ Prevent duplicate dancer in same event (frontend)
     const handleDancerChange = (index: number, value: string) => {
         setFormError(null);
 
         const current = formData.dancers || [];
-        // dacă value e deja în alt select
+
         if (value && current.includes(value) && current[index] !== value) {
-            setFormError(`Dansatorul "${value}" este deja selectat în acest eveniment.`);
+            setFormError(
+                `Dansatorul "${value}" este deja selectat în acest eveniment.`
+            );
             return;
         }
 
@@ -249,14 +268,12 @@ export default function Dashboard() {
         }));
     };
 
-    // ----------------------------
     const handleDateClick = (info: DateClickArg) => {
         setFormError(null);
-        setFormData((prev) => ({
+        setFormData({
             ...emptyForm,
-            ...prev,
             date: info.dateStr,
-        }));
+        });
         setActiveView("newEvent");
     };
 
@@ -264,9 +281,11 @@ export default function Dashboard() {
         const eventId = id || editingEventId || Date.now().toString();
         const safeDate = formData.date || new Date().toISOString().slice(0, 10);
 
-        const safeTitle = formData.street
-            ? `${formData.type} - ${formData.street}`
-            : `${formData.type} - Eveniment`;
+        const safeTitle = formData.street?.trim()
+            ? `${formData.type} - ${formData.street.trim()}`
+            : formData.location?.trim()
+                ? `${formData.type} - ${formData.location.trim()}`
+                : `${formData.type} - Eveniment`;
 
         return {
             id: eventId,
@@ -281,6 +300,7 @@ export default function Dashboard() {
             },
         };
     };
+
     const handleEventClick = (info: EventClickArg) => {
         const event = info?.event;
         if (!event) return;
@@ -291,7 +311,10 @@ export default function Dashboard() {
         const props = (event.extendedProps || {}) as Partial<EventForm>;
 
         const nr = Number(props.nrPerechi || 2);
-        const dancers = ensureDancersLength((props.dancers || []) as string[], nr);
+        const dancersSelected = ensureDancersLength(
+            (props.dancers || []) as string[],
+            nr
+        );
 
         setFormError(null);
         setFormData({
@@ -302,7 +325,7 @@ export default function Dashboard() {
             type: (props.type as EventType) || "Nunta",
             status: (props.status as EventStatus) || "Semnat",
             nrPerechi: nr,
-            dancers,
+            dancers: dancersSelected,
             color: props.color || (event.backgroundColor as string) || "#000000",
         });
 
@@ -310,13 +333,16 @@ export default function Dashboard() {
         setIsOpen(true);
     };
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const handleChange = (
+        e: React.ChangeEvent<
+            HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+        >
+    ) => {
         setFormError(null);
         const { name, value } = e.target;
         setFormData((p) => ({ ...p, [name]: value }));
     };
 
-    // ✅ salvează (create/update) – dacă backend dă 400, arătăm eroarea și NU închidem
     const handleSubmit = async () => {
         setApiError("");
         setFormError(null);
@@ -336,14 +362,12 @@ export default function Dashboard() {
                 setActiveView("calendar");
             }
         } catch (e: any) {
-            // ✅ AICI vezi conflict “dansator în alt eveniment”
             setFormError(e?.message || "Eroare la salvare");
         } finally {
             setLoading(false);
         }
     };
 
-    // ✅ confirm delete open
     const askDelete = () => setDeleteConfirmOpen(true);
 
     const handleDeleteConfirmed = async () => {
@@ -364,27 +388,51 @@ export default function Dashboard() {
         }
     };
 
-    // ----------------------------
-    // ✅ Evenimentele mele: arată doar evenimente unde userName este în dancers
     const myEvents = useMemo(() => {
         const uname = userName.trim();
         if (!uname) return [];
+
         return events.filter((ev) => {
             const props: any = (ev as any).extendedProps || {};
-            const dancers: string[] = Array.isArray(props.dancers) ? props.dancers : [];
-            return dancers.includes(uname);
+            const eventDancers: string[] = Array.isArray(props.dancers)
+                ? props.dancers
+                : [];
+            return eventDancers.includes(uname);
         });
     }, [events, userName]);
 
-    // ----------------------------
+    const dancersStats = useMemo(() => {
+        const stats: Record<string, number> = {};
+
+        dancers.forEach((name) => {
+            stats[name] = 0;
+        });
+
+        events.forEach((ev) => {
+            const props: any = (ev as any).extendedProps || {};
+            const eventDancers: string[] = Array.isArray(props.dancers)
+                ? props.dancers
+                : [];
+
+            eventDancers.forEach((name) => {
+                if (!name) return;
+                stats[name] = (stats[name] || 0) + 1;
+            });
+        });
+
+        return stats;
+    }, [events, dancers]);
+
+    const handleLogout = () => {
+        localStorage.removeItem(TOKEN_KEY);
+        localStorage.removeItem(USER_KEY);
+        window.location.href = "/login";
+    };
+
     const renderDancersSelects = () => {
         const nr = Math.max(1, Math.min(4, Number(formData.nrPerechi || 1)));
 
-        // dansatorii selectați în formular (nu lista globală!)
-        const dancersSelected = ensureDancersLength(
-            formData.dancers || [],
-            nr
-        );
+        const dancersSelected = ensureDancersLength(formData.dancers || [], nr);
 
         return (
             <div className="lg:col-span-4">
@@ -433,22 +481,35 @@ export default function Dashboard() {
 
     return (
         <div className="h-screen w-screen overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 text-slate-100 flex flex-col md:flex-row">
-            {/* SIDEBAR */}
-            <aside className="w-full md:w-64 bg-slate-900/90 border-b md:border-b-0 md:border-r border-slate-700 p-4 md:p-5">
+            <aside className="w-full md:w-64 bg-slate-900/90 border-b md:border-b-0 md:border-r border-slate-700 p-4 md:p-5 flex flex-col">
                 <div className="flex justify-center md:justify-start items-center gap-3 mb-5 md:mb-8">
-                    <img src="https://afoa.gnm.md/static//admin/logo.png" alt="Logo" className="w-12 h-12" />
-                    <div className="font-semibold hidden md:block">All For One Art</div>
+                    <img
+                        src="https://afoa.gnm.md/static//admin/logo.png"
+                        alt="Logo"
+                        className="w-12 h-12"
+                    />
+                    <div className="font-semibold hidden md:block">
+                        All For One Art
+                    </div>
                 </div>
 
                 <div className="text-center md:text-left mb-4 text-slate-300">
-                    Salut, <span className="font-semibold text-white">{userName || "User"}</span>
+                    Salut,{" "}
+                    <span className="font-semibold text-white">
+                        {userName || "User"}
+                    </span>
                 </div>
 
                 <nav className="flex justify-center md:justify-start gap-3 md:flex-col text-sm">
                     <button
-                        onClick={() => { setActiveView("calendar"); setIsOpen(false); }}
+                        onClick={() => {
+                            setActiveView("calendar");
+                            setIsOpen(false);
+                        }}
                         className={`px-6 py-2 rounded-lg text-center md:text-left transition ${
-                            activeView === "calendar" ? "bg-red-600 text-white" : "hover:bg-slate-700/40"
+                            activeView === "calendar"
+                                ? "bg-red-600 text-white"
+                                : "hover:bg-slate-700/40"
                         }`}
                     >
                         Dashboard
@@ -457,32 +518,71 @@ export default function Dashboard() {
                     <button
                         onClick={openNewEvent}
                         className={`px-6 py-2 rounded-lg text-center md:text-left transition ${
-                            activeView === "newEvent" ? "bg-red-600 text-white" : "hover:bg-slate-700/40"
+                            activeView === "newEvent"
+                                ? "bg-red-600 text-white"
+                                : "hover:bg-slate-700/40"
                         }`}
                     >
                         Eveniment Nou
                     </button>
 
                     <button
-                        onClick={() => { setActiveView("myEvents"); setIsOpen(false); }}
+                        onClick={() => {
+                            setActiveView("myEvents");
+                            setIsOpen(false);
+                        }}
                         className={`px-6 py-2 rounded-lg text-center md:text-left transition ${
-                            activeView === "myEvents" ? "bg-red-600 text-white" : "hover:bg-slate-700/40"
+                            activeView === "myEvents"
+                                ? "bg-red-600 text-white"
+                                : "hover:bg-slate-700/40"
                         }`}
                     >
                         Evenimentele mele
                     </button>
+
+                    <button
+                        onClick={() => {
+                            setActiveView("stats");
+                            setIsOpen(false);
+                        }}
+                        className={`px-6 py-2 rounded-lg text-center md:text-left transition ${
+                            activeView === "stats"
+                                ? "bg-red-600 text-white"
+                                : "hover:bg-slate-700/40"
+                        }`}
+                    >
+                        Statistici
+                    </button>
                 </nav>
+
+                <div className="mt-auto pt-6">
+                    <button
+                        onClick={handleLogout}
+                        className="w-full bg-red-700 hover:bg-red-600 px-4 py-2 rounded-lg text-white"
+                    >
+                        Logout
+                    </button>
+                </div>
             </aside>
 
-            {/* MAIN */}
             <main className="flex-1 flex flex-col overflow-hidden p-4 md:p-6">
                 <header className="flex items-start justify-between gap-3 mb-4">
                     <div>
                         <p className="text-sm text-slate-400">
-                            {activeView === "calendar" ? "Dashboard" : activeView === "newEvent" ? "Eveniment Nou" : "Evenimentele mele"}
+                            {activeView === "calendar"
+                                ? "Dashboard"
+                                : activeView === "newEvent"
+                                    ? "Eveniment Nou"
+                                    : activeView === "myEvents"
+                                        ? "Evenimentele mele"
+                                        : "Statistici"}
                         </p>
-                        <h1 className="text-xl md:text-2xl font-semibold">All For One Art</h1>
-                        {apiError && <p className="text-sm text-red-400 mt-2">{apiError}</p>}
+                        <h1 className="text-xl md:text-2xl font-semibold">
+                            All For One Art
+                        </h1>
+                        {apiError && (
+                            <p className="text-sm text-red-400 mt-2">{apiError}</p>
+                        )}
                     </div>
 
                     {activeView === "newEvent" && (
@@ -496,11 +596,12 @@ export default function Dashboard() {
                     )}
                 </header>
 
-                {/* DASHBOARD CALENDAR */}
                 {activeView === "calendar" && (
                     <section className="flex-1 bg-slate-800 rounded-xl border border-slate-700 p-3 md:p-4 flex flex-col overflow-hidden">
                         <div className="flex items-center justify-between mb-2">
-                            <div className="text-sm text-slate-400">{loading ? "Se încarcă..." : `${events.length} evenimente`}</div>
+                            <div className="text-sm text-slate-400">
+                                {loading ? "Se încarcă..." : `${events.length} evenimente`}
+                            </div>
                             <button
                                 onClick={reloadEvents}
                                 disabled={loading}
@@ -516,7 +617,11 @@ export default function Dashboard() {
                                 locale={roLocale}
                                 plugins={[dayGridPlugin, interactionPlugin]}
                                 initialView="dayGridMonth"
-                                headerToolbar={{ left: "", center: "title", right: "today prev,next" }}
+                                headerToolbar={{
+                                    left: "",
+                                    center: "title",
+                                    right: "today prev,next",
+                                }}
                                 events={events}
                                 dateClick={handleDateClick}
                                 eventClick={handleEventClick}
@@ -530,12 +635,13 @@ export default function Dashboard() {
                     </section>
                 )}
 
-                {/* MY EVENTS CALENDAR */}
                 {activeView === "myEvents" && (
                     <section className="flex-1 bg-slate-800 rounded-xl border border-slate-700 p-3 md:p-4 flex flex-col overflow-hidden">
                         <div className="flex items-center justify-between mb-2">
                             <div className="text-sm text-slate-400">
-                                {loading ? "Se încarcă..." : `${myEvents.length} evenimente pentru ${userName}`}
+                                {loading
+                                    ? "Se încarcă..."
+                                    : `${myEvents.length} evenimente pentru ${userName}`}
                             </div>
                             <button
                                 onClick={reloadEvents}
@@ -552,7 +658,11 @@ export default function Dashboard() {
                                 locale={roLocale}
                                 plugins={[dayGridPlugin, interactionPlugin]}
                                 initialView="dayGridMonth"
-                                headerToolbar={{ left: "", center: "title", right: "today prev,next" }}
+                                headerToolbar={{
+                                    left: "",
+                                    center: "title",
+                                    right: "today prev,next",
+                                }}
                                 events={myEvents}
                                 eventClick={handleEventClick}
                                 displayEventTime={false}
@@ -564,7 +674,34 @@ export default function Dashboard() {
                     </section>
                 )}
 
-                {/* NEW EVENT PAGE */}
+                {activeView === "stats" && (
+                    <section className="flex-1 bg-slate-800 rounded-xl border border-slate-700 p-4 md:p-6 overflow-y-auto">
+                        <h2 className="text-lg md:text-xl font-semibold mb-4">
+                            Statistici Dansatori
+                        </h2>
+
+                        {dancers.length === 0 ? (
+                            <div className="text-slate-400">
+                                Nu există dansatori încă.
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                {dancers.map((name) => (
+                                    <div
+                                        key={name}
+                                        className="bg-slate-900 border border-slate-700 rounded-xl p-4 flex justify-between items-center"
+                                    >
+                                        <span>{name}</span>
+                                        <span className="bg-red-600 px-3 py-1 rounded-full text-sm">
+                                            {dancersStats[name] || 0}
+                                        </span>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </section>
+                )}
+
                 {activeView === "newEvent" && (
                     <section className="flex-1 bg-slate-800 rounded-xl border border-slate-700 p-5 md:p-10 overflow-y-auto">
                         {formError && (
@@ -576,20 +713,38 @@ export default function Dashboard() {
                         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 xl:gap-14">
                             <div>
                                 <label className="text-slate-400 text-sm">Data</label>
-                                <input type="date" name="date" value={formData.date} onChange={handleChange}
-                                       className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"/>
+                                <input
+                                    type="date"
+                                    name="date"
+                                    value={formData.date}
+                                    onChange={handleChange}
+                                    className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
+                                />
                             </div>
 
                             <div>
-                                <label className="text-slate-400 text-sm">Ora (opțional)</label>
-                                <input type="time" name="time" value={formData.time} onChange={handleChange}
-                                       className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"/>
+                                <label className="text-slate-400 text-sm">
+                                    Ora (opțional)
+                                </label>
+                                <input
+                                    type="time"
+                                    name="time"
+                                    value={formData.time}
+                                    onChange={handleChange}
+                                    className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
+                                />
                             </div>
 
                             <div>
-                                <label className="text-slate-400 text-sm">Tip Eveniment</label>
-                                <select name="type" value={formData.type} onChange={handleChange}
-                                        className="w-full bg-slate-700 rounded-md p-2 mt-1">
+                                <label className="text-slate-400 text-sm">
+                                    Tip Eveniment
+                                </label>
+                                <select
+                                    name="type"
+                                    value={formData.type}
+                                    onChange={handleChange}
+                                    className="w-full bg-slate-700 rounded-md p-2 mt-1"
+                                >
                                     <option value="Nunta">Nunta</option>
                                     <option value="Cumătrie">Cumătrie</option>
                                     <option value="Altceva">Altceva</option>
@@ -598,24 +753,39 @@ export default function Dashboard() {
 
                             <div>
                                 <label className="text-slate-400 text-sm">Status</label>
-                                <select name="status" value={formData.status} onChange={handleChange}
-                                        className="w-full bg-slate-700 rounded-md p-2 mt-1">
+                                <select
+                                    name="status"
+                                    value={formData.status}
+                                    onChange={handleChange}
+                                    className="w-full bg-slate-700 rounded-md p-2 mt-1"
+                                >
                                     <option value="Semnat">Semnat</option>
                                     <option value="In Asteptare">In Asteptare</option>
                                 </select>
                             </div>
 
                             <div>
-                                <label className="text-slate-400 text-sm">Culoarea</label>
-                                <input type="color" name="color" value={formData.color} onChange={handleChange}
-                                       className="h-10 w-16 bg-transparent mt-2"/>
+                                <label className="text-slate-400 text-sm">
+                                    Culoarea
+                                </label>
+                                <input
+                                    type="color"
+                                    name="color"
+                                    value={formData.color}
+                                    onChange={handleChange}
+                                    className="h-10 w-16 bg-transparent mt-2"
+                                />
                             </div>
 
                             <div>
-                                <label className="text-slate-400 text-sm">Nr. perechi</label>
+                                <label className="text-slate-400 text-sm">
+                                    Nr. perechi
+                                </label>
                                 <select
                                     value={formData.nrPerechi}
-                                    onChange={(e) => handleNrPerechiChange(Number(e.target.value))}
+                                    onChange={(e) =>
+                                        handleNrPerechiChange(Number(e.target.value))
+                                    }
                                     className="w-full bg-slate-700 rounded-md p-2 mt-1"
                                 >
                                     <option value={1}>1 pereche</option>
@@ -626,103 +796,189 @@ export default function Dashboard() {
                             </div>
 
                             {renderDancersSelects()}
-                            <div>
-                                <label className="text-slate-400 text-sm">Restaurant/Sala</label>
-                                <input name="street" value={formData.street} onChange={handleChange}
-                                       className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"/>
-                            </div>
+
                             <div>
                                 <label className="text-slate-400 text-sm">Locația</label>
-                                <input name="location" value={formData.location} onChange={handleChange}
-                                       className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"/>
+                                <input
+                                    name="location"
+                                    value={formData.location}
+                                    onChange={handleChange}
+                                    className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
+                                />
                             </div>
 
+                            <div>
+                                <label className="text-slate-400 text-sm">
+                                    Restaurant/Sala
+                                </label>
+                                <input
+                                    name="street"
+                                    value={formData.street}
+                                    onChange={handleChange}
+                                    className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
+                                />
+                            </div>
 
                             <div>
                                 <label className="text-slate-400 text-sm">Detalii</label>
-                                <input name="details" value={formData.details} onChange={handleChange}
-                                       className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"/>
+                                <input
+                                    name="details"
+                                    value={formData.details}
+                                    onChange={handleChange}
+                                    className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
+                                />
                             </div>
 
                             <div>
                                 <label className="text-slate-400 text-sm">Miri</label>
-                                <input name="miri" value={formData.miri} onChange={handleChange}
-                                       className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"/>
+                                <input
+                                    name="miri"
+                                    value={formData.miri}
+                                    onChange={handleChange}
+                                    className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
+                                />
                             </div>
 
                             <div>
                                 <label className="text-slate-400 text-sm">Contact</label>
-                                <input name="contact" value={formData.contact} onChange={handleChange}
-                                       className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"/>
+                                <input
+                                    name="contact"
+                                    value={formData.contact}
+                                    onChange={handleChange}
+                                    className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
+                                />
                             </div>
 
                             <div>
                                 <label className="text-slate-400 text-sm">Preț</label>
-                                <input name="price" value={formData.price} onChange={handleChange}
-                                       className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"/>
+                                <input
+                                    name="price"
+                                    value={formData.price}
+                                    onChange={handleChange}
+                                    className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
+                                />
                             </div>
 
                             <div>
                                 <label className="text-slate-400 text-sm">Avans</label>
-                                <input name="avans" value={formData.avans} onChange={handleChange}
-                                       className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"/>
+                                <input
+                                    name="avans"
+                                    value={formData.avans}
+                                    onChange={handleChange}
+                                    className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
+                                />
                             </div>
 
                             <div className="md:col-span-2 xl:col-span-3">
-                                <label className="text-slate-400 text-sm">Detalii despre eveniment</label>
-                                <textarea name="detailsWedding" value={formData.detailsWedding} onChange={handleChange}
-                                          className="w-full bg-transparent border-b border-slate-600 py-2 outline-none min-h-[90px]"/>
+                                <label className="text-slate-400 text-sm">
+                                    Detalii despre eveniment
+                                </label>
+                                <textarea
+                                    name="detailsWedding"
+                                    value={formData.detailsWedding}
+                                    onChange={handleChange}
+                                    className="w-full bg-transparent border-b border-slate-600 py-2 outline-none min-h-[90px]"
+                                />
                             </div>
 
-                            {/* Moderator */}
                             <div>
-                                <label className="text-slate-400 text-sm">Moderator</label>
-                                <input name="moderator" value={formData.moderator} onChange={handleChange}
-                                       className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"/>
+                                <label className="text-slate-400 text-sm">
+                                    Moderator
+                                </label>
+                                <input
+                                    name="moderator"
+                                    value={formData.moderator}
+                                    onChange={handleChange}
+                                    className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
+                                />
                             </div>
                             <div>
-                                <label className="text-slate-400 text-sm">Moderator Contact</label>
-                                <input name="moderatorContact" value={formData.moderatorContact} onChange={handleChange}
-                                       className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"/>
+                                <label className="text-slate-400 text-sm">
+                                    Moderator Contact
+                                </label>
+                                <input
+                                    name="moderatorContact"
+                                    value={formData.moderatorContact}
+                                    onChange={handleChange}
+                                    className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
+                                />
                             </div>
                             <div>
-                                <label className="text-slate-400 text-sm">Moderator Detalii</label>
-                                <input name="moderatorDetails" value={formData.moderatorDetails} onChange={handleChange}
-                                       className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"/>
+                                <label className="text-slate-400 text-sm">
+                                    Moderator Detalii
+                                </label>
+                                <input
+                                    name="moderatorDetails"
+                                    value={formData.moderatorDetails}
+                                    onChange={handleChange}
+                                    className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
+                                />
                             </div>
 
-                            {/* Foto/Video */}
                             <div>
-                                <label className="text-slate-400 text-sm">Foto/Video</label>
-                                <input name="fotoVideo" value={formData.fotoVideo} onChange={handleChange}
-                                       className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"/>
+                                <label className="text-slate-400 text-sm">
+                                    Foto/Video
+                                </label>
+                                <input
+                                    name="fotoVideo"
+                                    value={formData.fotoVideo}
+                                    onChange={handleChange}
+                                    className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
+                                />
                             </div>
                             <div>
-                                <label className="text-slate-400 text-sm">Foto/Video Contact</label>
-                                <input name="fotoVideoContact" value={formData.fotoVideoContact} onChange={handleChange}
-                                       className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"/>
+                                <label className="text-slate-400 text-sm">
+                                    Foto/Video Contact
+                                </label>
+                                <input
+                                    name="fotoVideoContact"
+                                    value={formData.fotoVideoContact}
+                                    onChange={handleChange}
+                                    className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
+                                />
                             </div>
                             <div>
-                                <label className="text-slate-400 text-sm">Foto/Video Detalii</label>
-                                <input name="fotoVideoDetails" value={formData.fotoVideoDetails} onChange={handleChange}
-                                       className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"/>
+                                <label className="text-slate-400 text-sm">
+                                    Foto/Video Detalii
+                                </label>
+                                <input
+                                    name="fotoVideoDetails"
+                                    value={formData.fotoVideoDetails}
+                                    onChange={handleChange}
+                                    className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
+                                />
                             </div>
 
-                            {/* Muzica */}
                             <div>
                                 <label className="text-slate-400 text-sm">Muzică</label>
-                                <input name="muzica" value={formData.muzica} onChange={handleChange}
-                                       className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"/>
+                                <input
+                                    name="muzica"
+                                    value={formData.muzica}
+                                    onChange={handleChange}
+                                    className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
+                                />
                             </div>
                             <div>
-                                <label className="text-slate-400 text-sm">Muzică Contact</label>
-                                <input name="muzicaContact" value={formData.muzicaContact} onChange={handleChange}
-                                       className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"/>
+                                <label className="text-slate-400 text-sm">
+                                    Muzică Contact
+                                </label>
+                                <input
+                                    name="muzicaContact"
+                                    value={formData.muzicaContact}
+                                    onChange={handleChange}
+                                    className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
+                                />
                             </div>
                             <div>
-                                <label className="text-slate-400 text-sm">Muzică Detalii</label>
-                                <input name="muzicaDetails" value={formData.muzicaDetails} onChange={handleChange}
-                                       className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"/>
+                                <label className="text-slate-400 text-sm">
+                                    Muzică Detalii
+                                </label>
+                                <input
+                                    name="muzicaDetails"
+                                    value={formData.muzicaDetails}
+                                    onChange={handleChange}
+                                    className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
+                                />
                             </div>
                         </div>
 
@@ -731,7 +987,7 @@ export default function Dashboard() {
                                 onClick={() => setActiveView("calendar")}
                                 className="bg-slate-700 hover:bg-slate-600 px-6 py-2 rounded-lg"
                             >
-                            Înapoi la Calendar
+                                Înapoi la Calendar
                             </button>
 
                             <button
@@ -745,13 +1001,17 @@ export default function Dashboard() {
                     </section>
                 )}
 
-                {/* EDIT MODAL (TOATE INPUTURILE) */}
                 {isOpen && (
                     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-3">
                         <div className="bg-slate-800 w-full max-w-5xl rounded-xl p-5 md:p-8 border border-slate-700 relative max-h-[90vh] overflow-y-auto">
-                            <h2 className="text-xl md:text-3xl font-semibold text-center mb-6">Modifică Eveniment</h2>
+                            <h2 className="text-xl md:text-3xl font-semibold text-center mb-6">
+                                Modifică Eveniment
+                            </h2>
 
-                            <button onClick={closeModal} className="absolute top-4 right-4 text-slate-400 hover:text-white">
+                            <button
+                                onClick={closeModal}
+                                className="absolute top-4 right-4 text-slate-400 hover:text-white"
+                            >
                                 ✕
                             </button>
 
@@ -764,20 +1024,34 @@ export default function Dashboard() {
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                                 <div>
                                     <label className="text-slate-400 text-sm">Data</label>
-                                    <input type="date" name="date" value={formData.date} onChange={handleChange}
-                                           className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"/>
+                                    <input
+                                        type="date"
+                                        name="date"
+                                        value={formData.date}
+                                        onChange={handleChange}
+                                        className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
+                                    />
                                 </div>
 
                                 <div>
                                     <label className="text-slate-400 text-sm">Ora</label>
-                                    <input type="time" name="time" value={formData.time} onChange={handleChange}
-                                           className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"/>
+                                    <input
+                                        type="time"
+                                        name="time"
+                                        value={formData.time}
+                                        onChange={handleChange}
+                                        className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
+                                    />
                                 </div>
 
                                 <div>
                                     <label className="text-slate-400 text-sm">Tip</label>
-                                    <select name="type" value={formData.type} onChange={handleChange}
-                                            className="w-full bg-slate-700 rounded-md p-2 mt-1">
+                                    <select
+                                        name="type"
+                                        value={formData.type}
+                                        onChange={handleChange}
+                                        className="w-full bg-slate-700 rounded-md p-2 mt-1"
+                                    >
                                         <option value="Nunta">Nunta</option>
                                         <option value="Cumătrie">Cumătrie</option>
                                         <option value="Altceva">Altceva</option>
@@ -785,25 +1059,42 @@ export default function Dashboard() {
                                 </div>
 
                                 <div>
-                                    <label className="text-slate-400 text-sm">Status</label>
-                                    <select name="status" value={formData.status} onChange={handleChange}
-                                            className="w-full bg-slate-700 rounded-md p-2 mt-1">
+                                    <label className="text-slate-400 text-sm">
+                                        Status
+                                    </label>
+                                    <select
+                                        name="status"
+                                        value={formData.status}
+                                        onChange={handleChange}
+                                        className="w-full bg-slate-700 rounded-md p-2 mt-1"
+                                    >
                                         <option value="Semnat">Semnat</option>
                                         <option value="In Asteptare">In Asteptare</option>
                                     </select>
                                 </div>
 
                                 <div>
-                                    <label className="text-slate-400 text-sm">Culoarea</label>
-                                    <input type="color" name="color" value={formData.color} onChange={handleChange}
-                                           className="h-10 w-16 bg-transparent mt-2"/>
+                                    <label className="text-slate-400 text-sm">
+                                        Culoarea
+                                    </label>
+                                    <input
+                                        type="color"
+                                        name="color"
+                                        value={formData.color}
+                                        onChange={handleChange}
+                                        className="h-10 w-16 bg-transparent mt-2"
+                                    />
                                 </div>
 
                                 <div>
-                                    <label className="text-slate-400 text-sm">Nr. perechi</label>
+                                    <label className="text-slate-400 text-sm">
+                                        Nr. perechi
+                                    </label>
                                     <select
                                         value={formData.nrPerechi}
-                                        onChange={(e) => handleNrPerechiChange(Number(e.target.value))}
+                                        onChange={(e) =>
+                                            handleNrPerechiChange(Number(e.target.value))
+                                        }
                                         className="w-full bg-slate-700 rounded-md p-2 mt-1"
                                     >
                                         <option value={1}>1 pereche</option>
@@ -814,113 +1105,200 @@ export default function Dashboard() {
                                 </div>
 
                                 {renderDancersSelects()}
+
                                 <div className="md:col-span-2">
-                                    <label className="text-slate-400 text-sm">Restaurant/Sala</label>
-                                    <input name="street" value={formData.street} onChange={handleChange}
-                                           className="w-full border border-pink-500 rounded-md p-2 bg-transparent outline-none"/>
-                                </div>
-                                <div className="md:col-span-2">
-                                    <label className="text-slate-400 text-sm">Locația</label>
-                                    <input name="location" value={formData.location} onChange={handleChange}
-                                           className="w-full border border-pink-500 rounded-md p-2 bg-transparent outline-none"/>
+                                    <label className="text-slate-400 text-sm">
+                                        Locația
+                                    </label>
+                                    <input
+                                        name="location"
+                                        value={formData.location}
+                                        onChange={handleChange}
+                                        className="w-full border border-pink-500 rounded-md p-2 bg-transparent outline-none"
+                                    />
                                 </div>
 
+                                <div className="md:col-span-2">
+                                    <label className="text-slate-400 text-sm">
+                                        Restaurant/Sala
+                                    </label>
+                                    <input
+                                        name="street"
+                                        value={formData.street}
+                                        onChange={handleChange}
+                                        className="w-full border border-pink-500 rounded-md p-2 bg-transparent outline-none"
+                                    />
+                                </div>
 
                                 <div className="lg:col-span-4">
-                                    <label className="text-slate-400 text-sm">Detalii</label>
-                                    <input name="details" value={formData.details} onChange={handleChange}
-                                           className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"/>
+                                    <label className="text-slate-400 text-sm">
+                                        Detalii
+                                    </label>
+                                    <input
+                                        name="details"
+                                        value={formData.details}
+                                        onChange={handleChange}
+                                        className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
+                                    />
                                 </div>
 
                                 <div>
                                     <label className="text-slate-400 text-sm">Miri</label>
-                                    <input name="miri" value={formData.miri} onChange={handleChange}
-                                           className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"/>
+                                    <input
+                                        name="miri"
+                                        value={formData.miri}
+                                        onChange={handleChange}
+                                        className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
+                                    />
                                 </div>
 
                                 <div>
-                                    <label className="text-slate-400 text-sm">Contact</label>
-                                    <input name="contact" value={formData.contact} onChange={handleChange}
-                                           className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"/>
+                                    <label className="text-slate-400 text-sm">
+                                        Contact
+                                    </label>
+                                    <input
+                                        name="contact"
+                                        value={formData.contact}
+                                        onChange={handleChange}
+                                        className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
+                                    />
                                 </div>
 
                                 <div>
                                     <label className="text-slate-400 text-sm">Preț</label>
-                                    <input name="price" value={formData.price} onChange={handleChange}
-                                           className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"/>
+                                    <input
+                                        name="price"
+                                        value={formData.price}
+                                        onChange={handleChange}
+                                        className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
+                                    />
                                 </div>
 
                                 <div>
                                     <label className="text-slate-400 text-sm">Avans</label>
-                                    <input name="avans" value={formData.avans} onChange={handleChange}
-                                           className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"/>
+                                    <input
+                                        name="avans"
+                                        value={formData.avans}
+                                        onChange={handleChange}
+                                        className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
+                                    />
                                 </div>
 
                                 <div className="lg:col-span-4">
-                                    <label className="text-slate-400 text-sm">Detalii despre eveniment</label>
-                                    <textarea name="detailsWedding" value={formData.detailsWedding}
-                                              onChange={handleChange}
-                                              className="w-full bg-transparent border-b border-slate-600 py-2 outline-none min-h-[90px]"/>
+                                    <label className="text-slate-400 text-sm">
+                                        Detalii despre eveniment
+                                    </label>
+                                    <textarea
+                                        name="detailsWedding"
+                                        value={formData.detailsWedding}
+                                        onChange={handleChange}
+                                        className="w-full bg-transparent border-b border-slate-600 py-2 outline-none min-h-[90px]"
+                                    />
                                 </div>
 
-                                {/* Moderator */}
                                 <div>
-                                    <label className="text-slate-400 text-sm">Moderator</label>
-                                    <input name="moderator" value={formData.moderator} onChange={handleChange}
-                                           className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"/>
+                                    <label className="text-slate-400 text-sm">
+                                        Moderator
+                                    </label>
+                                    <input
+                                        name="moderator"
+                                        value={formData.moderator}
+                                        onChange={handleChange}
+                                        className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
+                                    />
                                 </div>
                                 <div>
-                                    <label className="text-slate-400 text-sm">Moderator Contact</label>
-                                    <input name="moderatorContact" value={formData.moderatorContact}
-                                           onChange={handleChange}
-                                           className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"/>
+                                    <label className="text-slate-400 text-sm">
+                                        Moderator Contact
+                                    </label>
+                                    <input
+                                        name="moderatorContact"
+                                        value={formData.moderatorContact}
+                                        onChange={handleChange}
+                                        className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
+                                    />
                                 </div>
                                 <div>
-                                    <label className="text-slate-400 text-sm">Moderator Detalii</label>
-                                    <input name="moderatorDetails" value={formData.moderatorDetails}
-                                           onChange={handleChange}
-                                           className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"/>
-                                </div>
-
-                                {/* Foto/Video */}
-                                <div>
-                                    <label className="text-slate-400 text-sm">Foto/Video</label>
-                                    <input name="fotoVideo" value={formData.fotoVideo} onChange={handleChange}
-                                           className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"/>
-                                </div>
-                                <div>
-                                    <label className="text-slate-400 text-sm">Foto/Video Contact</label>
-                                    <input name="fotoVideoContact" value={formData.fotoVideoContact}
-                                           onChange={handleChange}
-                                           className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"/>
-                                </div>
-                                <div>
-                                    <label className="text-slate-400 text-sm">Foto/Video Detalii</label>
-                                    <input name="fotoVideoDetails" value={formData.fotoVideoDetails}
-                                           onChange={handleChange}
-                                           className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"/>
+                                    <label className="text-slate-400 text-sm">
+                                        Moderator Detalii
+                                    </label>
+                                    <input
+                                        name="moderatorDetails"
+                                        value={formData.moderatorDetails}
+                                        onChange={handleChange}
+                                        className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
+                                    />
                                 </div>
 
-                                {/* Muzica */}
                                 <div>
-                                    <label className="text-slate-400 text-sm">Muzică</label>
-                                    <input name="muzica" value={formData.muzica} onChange={handleChange}
-                                           className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"/>
+                                    <label className="text-slate-400 text-sm">
+                                        Foto/Video
+                                    </label>
+                                    <input
+                                        name="fotoVideo"
+                                        value={formData.fotoVideo}
+                                        onChange={handleChange}
+                                        className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
+                                    />
                                 </div>
                                 <div>
-                                    <label className="text-slate-400 text-sm">Muzică Contact</label>
-                                    <input name="muzicaContact" value={formData.muzicaContact} onChange={handleChange}
-                                           className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"/>
+                                    <label className="text-slate-400 text-sm">
+                                        Foto/Video Contact
+                                    </label>
+                                    <input
+                                        name="fotoVideoContact"
+                                        value={formData.fotoVideoContact}
+                                        onChange={handleChange}
+                                        className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
+                                    />
                                 </div>
                                 <div>
-                                    <label className="text-slate-400 text-sm">Muzică Detalii</label>
-                                    <input name="muzicaDetails" value={formData.muzicaDetails} onChange={handleChange}
-                                           className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"/>
+                                    <label className="text-slate-400 text-sm">
+                                        Foto/Video Detalii
+                                    </label>
+                                    <input
+                                        name="fotoVideoDetails"
+                                        value={formData.fotoVideoDetails}
+                                        onChange={handleChange}
+                                        className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
+                                    />
                                 </div>
 
-                                {/* Buttons */}
-                                <div
-                                    className="lg:col-span-4 flex flex-col sm:flex-row justify-center items-center gap-4 mt-4">
+                                <div>
+                                    <label className="text-slate-400 text-sm">
+                                        Muzică
+                                    </label>
+                                    <input
+                                        name="muzica"
+                                        value={formData.muzica}
+                                        onChange={handleChange}
+                                        className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-slate-400 text-sm">
+                                        Muzică Contact
+                                    </label>
+                                    <input
+                                        name="muzicaContact"
+                                        value={formData.muzicaContact}
+                                        onChange={handleChange}
+                                        className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-slate-400 text-sm">
+                                        Muzică Detalii
+                                    </label>
+                                    <input
+                                        name="muzicaDetails"
+                                        value={formData.muzicaDetails}
+                                        onChange={handleChange}
+                                        className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
+                                    />
+                                </div>
+
+                                <div className="lg:col-span-4 flex flex-col sm:flex-row justify-center items-center gap-4 mt-4">
                                     <button
                                         onClick={handleSubmit}
                                         disabled={loading}
@@ -946,19 +1324,22 @@ export default function Dashboard() {
                                 </div>
                             </div>
 
-                            {/* CONFIRM DELETE MODAL */}
                             {deleteConfirmOpen && (
                                 <div className="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4">
-                                    <div
-                                        className="w-full max-w-md bg-slate-900 border border-slate-700 rounded-2xl p-6">
-                                        <h3 className="text-lg font-semibold mb-3">Confirmare ștergere</h3>
+                                    <div className="w-full max-w-md bg-slate-900 border border-slate-700 rounded-2xl p-6">
+                                        <h3 className="text-lg font-semibold mb-3">
+                                            Confirmare ștergere
+                                        </h3>
                                         <p className="text-slate-300 mb-6">
-                                            Sigur vrei să ștergi acest eveniment? Acțiunea nu poate fi anulată.
+                                            Sigur vrei să ștergi acest eveniment?
+                                            Acțiunea nu poate fi anulată.
                                         </p>
 
                                         <div className="flex gap-3 justify-end">
                                             <button
-                                                onClick={() => setDeleteConfirmOpen(false)}
+                                                onClick={() =>
+                                                    setDeleteConfirmOpen(false)
+                                                }
                                                 className="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-lg"
                                             >
                                                 Nu
