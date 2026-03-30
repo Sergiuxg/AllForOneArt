@@ -734,7 +734,7 @@ export default function Dashboard() {
                 </header>
 
                     {activeView === "calendar" && (
-                        <section className="bg-slate-800 rounded-xl border border-slate-700 p-3 md:p-4 overflow-visible">
+                        <section className="bg-slate-800 rounded-xl border border-slate-700 p-3 md:p-4">
                             <div className="flex items-center justify-between mb-2">
                                 <div className="text-sm text-slate-400">
                                     {loading ? "Se încarcă..." : `${events.length} evenimente`}
@@ -748,7 +748,7 @@ export default function Dashboard() {
                                 </button>
                             </div>
 
-                            <div className="min-h-[700px]">
+                            <div>
                                 <FullCalendar
                                     firstDay={1}
                                     locale={roLocale}
@@ -774,7 +774,7 @@ export default function Dashboard() {
                     )}
 
                 {activeView === "myEvents" && (
-                    <section className="bg-slate-800 rounded-xl border border-slate-700 p-3 md:p-4 overflow-visible">
+                    <section className="bg-slate-800 rounded-xl border border-slate-700 p-3 md:p-4">
                         <div className="flex items-center justify-between mb-2">
                             <div className="text-sm text-slate-400">
                                 {loading
@@ -790,7 +790,7 @@ export default function Dashboard() {
                             </button>
                         </div>
 
-                        <div className="min-h-[700px]">
+                        <div>
                             <FullCalendar
                                 firstDay={1}
                                 locale={roLocale}

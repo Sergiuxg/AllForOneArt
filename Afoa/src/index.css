@@ -20,3 +20,11 @@ html, body, #root {
     font-size: 13px;
     text-transform: lowercase; /* lun., mar. */
 }
+
+.fc .fc-daygrid-body {
+    height: auto !important;
+}
+
+.fc .fc-view-harness {
+    height: auto !important;
+}
