@@ -16,7 +16,7 @@ export const dancers = [
     "Evelina Ustica",
     "Diana Scripnic",
     "Sabina Nichifor",
-    "Arina Romanencod",
+    "Arina Romanenco",
     "Victoria Roșca",
     "Cristina Mihai",
     "Marinela Pascari",
