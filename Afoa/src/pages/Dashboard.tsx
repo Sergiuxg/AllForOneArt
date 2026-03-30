@@ -173,7 +173,7 @@ export default function Dashboard() {
 
     const [events, setEvents] = useState<EventInput[]>([]);
     const [loading, setLoading] = useState(false);
-    const [apiError, setApiError] = useState<string>("");
+    const [apiError, setApiError] = useState("");
 
     const [isOpen, setIsOpen] = useState(false);
     const [editingEventId, setEditingEventId] = useState<string | null>(null);
@@ -181,6 +181,9 @@ export default function Dashboard() {
 
     const [formError, setFormError] = useState<string | null>(null);
     const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+    const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
     const [dancers, setDancers] = useState<string[]>([]);
 
     const userName = getUserName();
@@ -204,6 +207,7 @@ export default function Dashboard() {
     const reloadEvents = async () => {
         setApiError("");
         setLoading(true);
+
         try {
             const serverEvents = await fetchEventsApi();
             setEvents(serverEvents);
@@ -227,7 +231,9 @@ export default function Dashboard() {
             },
         })
             .then((res) => {
-                if (!res.ok) throw new Error("Eroare la încărcarea dansatorilor");
+                if (!res.ok) {
+                    throw new Error("Eroare la încărcarea dansatorilor");
+                }
                 return res.json();
             })
             .then((data) => {
@@ -309,7 +315,6 @@ export default function Dashboard() {
         const dateStr = start ? start.toISOString().slice(0, 10) : "";
 
         const props = (event.extendedProps || {}) as Partial<EventForm>;
-
         const nr = Number(props.nrPerechi || 2);
         const dancersSelected = ensureDancersLength(
             (props.dancers || []) as string[],
@@ -369,6 +374,7 @@ export default function Dashboard() {
     };
 
     const askDelete = () => setDeleteConfirmOpen(true);
+    const askLogout = () => setLogoutConfirmOpen(true);
 
     const handleDeleteConfirmed = async () => {
         if (!editingEventId) return;
@@ -386,6 +392,12 @@ export default function Dashboard() {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleLogoutConfirmed = () => {
+        localStorage.removeItem(TOKEN_KEY);
+        localStorage.removeItem(USER_KEY);
+        window.location.href = "/login";
     };
 
     const myEvents = useMemo(() => {
@@ -423,15 +435,8 @@ export default function Dashboard() {
         return stats;
     }, [events, dancers]);
 
-    const handleLogout = () => {
-        localStorage.removeItem(TOKEN_KEY);
-        localStorage.removeItem(USER_KEY);
-        window.location.href = "/login";
-    };
-
     const renderDancersSelects = () => {
         const nr = Math.max(1, Math.min(4, Number(formData.nrPerechi || 1)));
-
         const dancersSelected = ensureDancersLength(formData.dancers || [], nr);
 
         return (
@@ -480,33 +485,32 @@ export default function Dashboard() {
     };
 
     return (
-        <div className="h-screen w-screen overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 text-slate-100 flex flex-col md:flex-row">
-            <aside className="w-full md:w-64 bg-slate-900/90 border-b md:border-b-0 md:border-r border-slate-700 p-4 md:p-5 flex flex-col">
-                <div className="flex justify-center md:justify-start items-center gap-3 mb-5 md:mb-8">
+        <div className="min-h-screen w-full bg-gradient-to-br from-slate-900 to-slate-800 text-slate-100 flex flex-col md:flex-row">
+            {/* DESKTOP SIDEBAR */}
+            <aside className="hidden md:flex w-64 bg-slate-900/90 border-r border-slate-700 p-5 flex-col">
+                <div className="flex items-center gap-3 mb-8">
                     <img
                         src="https://afoa.gnm.md/static//admin/logo.png"
                         alt="Logo"
                         className="w-12 h-12"
                     />
-                    <div className="font-semibold hidden md:block">
-                        All For One Art
-                    </div>
+                    <div className="font-semibold">All For One Art</div>
                 </div>
 
-                <div className="text-center md:text-left mb-4 text-slate-300">
+                <div className="mb-4 text-slate-300">
                     Salut,{" "}
                     <span className="font-semibold text-white">
                         {userName || "User"}
                     </span>
                 </div>
 
-                <nav className="flex justify-center md:justify-start gap-3 md:flex-col text-sm">
+                <nav className="flex flex-col gap-3 text-sm">
                     <button
                         onClick={() => {
                             setActiveView("calendar");
                             setIsOpen(false);
                         }}
-                        className={`px-6 py-2 rounded-lg text-center md:text-left transition ${
+                        className={`px-6 py-2 rounded-lg text-left transition ${
                             activeView === "calendar"
                                 ? "bg-red-600 text-white"
                                 : "hover:bg-slate-700/40"
@@ -517,7 +521,7 @@ export default function Dashboard() {
 
                     <button
                         onClick={openNewEvent}
-                        className={`px-6 py-2 rounded-lg text-center md:text-left transition ${
+                        className={`px-6 py-2 rounded-lg text-left transition ${
                             activeView === "newEvent"
                                 ? "bg-red-600 text-white"
                                 : "hover:bg-slate-700/40"
@@ -531,7 +535,7 @@ export default function Dashboard() {
                             setActiveView("myEvents");
                             setIsOpen(false);
                         }}
-                        className={`px-6 py-2 rounded-lg text-center md:text-left transition ${
+                        className={`px-6 py-2 rounded-lg text-left transition ${
                             activeView === "myEvents"
                                 ? "bg-red-600 text-white"
                                 : "hover:bg-slate-700/40"
@@ -545,7 +549,7 @@ export default function Dashboard() {
                             setActiveView("stats");
                             setIsOpen(false);
                         }}
-                        className={`px-6 py-2 rounded-lg text-center md:text-left transition ${
+                        className={`px-6 py-2 rounded-lg text-left transition ${
                             activeView === "stats"
                                 ? "bg-red-600 text-white"
                                 : "hover:bg-slate-700/40"
@@ -557,7 +561,7 @@ export default function Dashboard() {
 
                 <div className="mt-auto pt-6">
                     <button
-                        onClick={handleLogout}
+                        onClick={askLogout}
                         className="w-full bg-red-700 hover:bg-red-600 px-4 py-2 rounded-lg text-white"
                     >
                         Logout
@@ -565,7 +569,140 @@ export default function Dashboard() {
                 </div>
             </aside>
 
-            <main className="flex-1 flex flex-col overflow-hidden p-4 md:p-6">
+            <main className="flex-1 flex flex-col overflow-hidden p-3 md:p-6">
+                {/* MOBILE TOP BAR */}
+                <div className="md:hidden flex items-center justify-between mb-4 bg-slate-900/90 border border-slate-700 rounded-xl px-4 py-3">
+                    <div className="flex items-center gap-3">
+                        <button
+                            onClick={() => setMobileMenuOpen(true)}
+                            className="text-white text-2xl leading-none"
+                        >
+                            ☰
+                        </button>
+
+                        <div className="flex items-center gap-2">
+                            <img
+                                src="https://afoa.gnm.md/static//admin/logo.png"
+                                alt="Logo"
+                                className="w-10 h-10"
+                            />
+                            <div className="text-sm">
+                                <div className="text-slate-300">Salut,</div>
+                                <div className="font-semibold text-white">
+                                    {userName || "User"}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button
+                        onClick={askLogout}
+                        className="bg-red-700 hover:bg-red-600 px-4 py-2 rounded-lg text-white text-sm"
+                    >
+                        Logout
+                    </button>
+                </div>
+
+                {/* MOBILE MENU */}
+                {mobileMenuOpen && (
+                    <div className="fixed inset-0 z-[70] md:hidden">
+                        <div
+                            className="absolute inset-0 bg-black/60"
+                            onClick={() => setMobileMenuOpen(false)}
+                        />
+
+                        <div className="absolute left-0 top-0 h-full w-72 bg-slate-900 border-r border-slate-700 p-5">
+                            <div className="flex items-center justify-between mb-6">
+                                <div className="flex items-center gap-3">
+                                    <img
+                                        src="https://afoa.gnm.md/static//admin/logo.png"
+                                        alt="Logo"
+                                        className="w-10 h-10"
+                                    />
+                                    <div className="font-semibold text-white">
+                                        All For One Art
+                                    </div>
+                                </div>
+
+                                <button
+                                    onClick={() => setMobileMenuOpen(false)}
+                                    className="text-slate-300 text-2xl"
+                                >
+                                    ✕
+                                </button>
+                            </div>
+
+                            <div className="mb-5 text-slate-300">
+                                Salut,{" "}
+                                <span className="font-semibold text-white">
+                                    {userName || "User"}
+                                </span>
+                            </div>
+
+                            <nav className="flex flex-col gap-3 text-sm">
+                                <button
+                                    onClick={() => {
+                                        setActiveView("calendar");
+                                        setIsOpen(false);
+                                        setMobileMenuOpen(false);
+                                    }}
+                                    className={`px-4 py-3 rounded-lg text-left transition ${
+                                        activeView === "calendar"
+                                            ? "bg-red-600 text-white"
+                                            : "hover:bg-slate-700/40"
+                                    }`}
+                                >
+                                    Dashboard
+                                </button>
+
+                                <button
+                                    onClick={() => {
+                                        openNewEvent();
+                                        setMobileMenuOpen(false);
+                                    }}
+                                    className={`px-4 py-3 rounded-lg text-left transition ${
+                                        activeView === "newEvent"
+                                            ? "bg-red-600 text-white"
+                                            : "hover:bg-slate-700/40"
+                                    }`}
+                                >
+                                    Eveniment Nou
+                                </button>
+
+                                <button
+                                    onClick={() => {
+                                        setActiveView("myEvents");
+                                        setIsOpen(false);
+                                        setMobileMenuOpen(false);
+                                    }}
+                                    className={`px-4 py-3 rounded-lg text-left transition ${
+                                        activeView === "myEvents"
+                                            ? "bg-red-600 text-white"
+                                            : "hover:bg-slate-700/40"
+                                    }`}
+                                >
+                                    Evenimentele mele
+                                </button>
+
+                                <button
+                                    onClick={() => {
+                                        setActiveView("stats");
+                                        setIsOpen(false);
+                                        setMobileMenuOpen(false);
+                                    }}
+                                    className={`px-4 py-3 rounded-lg text-left transition ${
+                                        activeView === "stats"
+                                            ? "bg-red-600 text-white"
+                                            : "hover:bg-slate-700/40"
+                                    }`}
+                                >
+                                    Statistici
+                                </button>
+                            </nav>
+                        </div>
+                    </div>
+                )}
+
                 <header className="flex items-start justify-between gap-3 mb-4">
                     <div>
                         <p className="text-sm text-slate-400">
@@ -765,9 +902,7 @@ export default function Dashboard() {
                             </div>
 
                             <div>
-                                <label className="text-slate-400 text-sm">
-                                    Culoarea
-                                </label>
+                                <label className="text-slate-400 text-sm">Culoarea</label>
                                 <input
                                     type="color"
                                     name="color"
@@ -892,6 +1027,7 @@ export default function Dashboard() {
                                     className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
                                 />
                             </div>
+
                             <div>
                                 <label className="text-slate-400 text-sm">
                                     Moderator Contact
@@ -903,6 +1039,7 @@ export default function Dashboard() {
                                     className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
                                 />
                             </div>
+
                             <div>
                                 <label className="text-slate-400 text-sm">
                                     Moderator Detalii
@@ -926,6 +1063,7 @@ export default function Dashboard() {
                                     className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
                                 />
                             </div>
+
                             <div>
                                 <label className="text-slate-400 text-sm">
                                     Foto/Video Contact
@@ -937,6 +1075,7 @@ export default function Dashboard() {
                                     className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
                                 />
                             </div>
+
                             <div>
                                 <label className="text-slate-400 text-sm">
                                     Foto/Video Detalii
@@ -958,6 +1097,7 @@ export default function Dashboard() {
                                     className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
                                 />
                             </div>
+
                             <div>
                                 <label className="text-slate-400 text-sm">
                                     Muzică Contact
@@ -969,6 +1109,7 @@ export default function Dashboard() {
                                     className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
                                 />
                             </div>
+
                             <div>
                                 <label className="text-slate-400 text-sm">
                                     Muzică Detalii
@@ -1001,6 +1142,7 @@ export default function Dashboard() {
                     </section>
                 )}
 
+                {/* EDIT MODAL */}
                 {isOpen && (
                     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-3">
                         <div className="bg-slate-800 w-full max-w-5xl rounded-xl p-5 md:p-8 border border-slate-700 relative max-h-[90vh] overflow-y-auto">
@@ -1207,6 +1349,7 @@ export default function Dashboard() {
                                         className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
                                     />
                                 </div>
+
                                 <div>
                                     <label className="text-slate-400 text-sm">
                                         Moderator Contact
@@ -1218,6 +1361,7 @@ export default function Dashboard() {
                                         className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
                                     />
                                 </div>
+
                                 <div>
                                     <label className="text-slate-400 text-sm">
                                         Moderator Detalii
@@ -1241,6 +1385,7 @@ export default function Dashboard() {
                                         className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
                                     />
                                 </div>
+
                                 <div>
                                     <label className="text-slate-400 text-sm">
                                         Foto/Video Contact
@@ -1252,6 +1397,7 @@ export default function Dashboard() {
                                         className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
                                     />
                                 </div>
+
                                 <div>
                                     <label className="text-slate-400 text-sm">
                                         Foto/Video Detalii
@@ -1275,6 +1421,7 @@ export default function Dashboard() {
                                         className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
                                     />
                                 </div>
+
                                 <div>
                                     <label className="text-slate-400 text-sm">
                                         Muzică Contact
@@ -1286,6 +1433,7 @@ export default function Dashboard() {
                                         className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
                                     />
                                 </div>
+
                                 <div>
                                     <label className="text-slate-400 text-sm">
                                         Muzică Detalii
@@ -1355,6 +1503,36 @@ export default function Dashboard() {
                                     </div>
                                 </div>
                             )}
+                        </div>
+                    </div>
+                )}
+
+                {/* LOGOUT CONFIRM */}
+                {logoutConfirmOpen && (
+                    <div className="fixed inset-0 bg-black/60 z-[80] flex items-center justify-center p-4">
+                        <div className="w-full max-w-md bg-slate-900 border border-slate-700 rounded-2xl p-6">
+                            <h3 className="text-lg font-semibold mb-3">
+                                Confirmare logout
+                            </h3>
+                            <p className="text-slate-300 mb-6">
+                                Ești sigur că vrei să te deloghezi?
+                            </p>
+
+                            <div className="flex gap-3 justify-end">
+                                <button
+                                    onClick={() => setLogoutConfirmOpen(false)}
+                                    className="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-lg"
+                                >
+                                    Nu
+                                </button>
+
+                                <button
+                                    onClick={handleLogoutConfirmed}
+                                    className="bg-red-600 hover:bg-red-500 px-4 py-2 rounded-lg"
+                                >
+                                    Da
+                                </button>
+                            </div>
                         </div>
                     </div>
                 )}
