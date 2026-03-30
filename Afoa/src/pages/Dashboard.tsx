@@ -569,7 +569,7 @@ export default function Dashboard() {
                 </div>
             </aside>
 
-            <main className="flex-1 flex flex-col overflow-hidden p-3 md:p-6">
+            <main className="flex-1 flex flex-col overflow-y-auto p-3 md:p-6">
                 {/* MOBILE TOP BAR */}
                 <div className="md:hidden flex items-center justify-between mb-4 bg-slate-900/90 border border-slate-700 rounded-xl px-4 py-3">
                     <div className="flex items-center gap-3">
@@ -733,47 +733,48 @@ export default function Dashboard() {
                     )}
                 </header>
 
-                {activeView === "calendar" && (
-                    <section className="flex-1 bg-slate-800 rounded-xl border border-slate-700 p-3 md:p-4 flex flex-col overflow-hidden">
-                        <div className="flex items-center justify-between mb-2">
-                            <div className="text-sm text-slate-400">
-                                {loading ? "Se încarcă..." : `${events.length} evenimente`}
+                    {activeView === "calendar" && (
+                        <section className="bg-slate-800 rounded-xl border border-slate-700 p-3 md:p-4 overflow-visible">
+                            <div className="flex items-center justify-between mb-2">
+                                <div className="text-sm text-slate-400">
+                                    {loading ? "Se încarcă..." : `${events.length} evenimente`}
+                                </div>
+                                <button
+                                    onClick={reloadEvents}
+                                    disabled={loading}
+                                    className="text-sm px-3 py-1 rounded-md bg-slate-700 hover:bg-slate-600 disabled:opacity-50"
+                                >
+                                    Refresh
+                                </button>
                             </div>
-                            <button
-                                onClick={reloadEvents}
-                                disabled={loading}
-                                className="text-sm px-3 py-1 rounded-md bg-slate-700 hover:bg-slate-600 disabled:opacity-50"
-                            >
-                                Refresh
-                            </button>
-                        </div>
 
-                        <div className="flex-1 min-h-0">
-                            <FullCalendar
-                                firstDay={1}
-                                locale={roLocale}
-                                plugins={[dayGridPlugin, interactionPlugin]}
-                                initialView="dayGridMonth"
-                                headerToolbar={{
-                                    left: "",
-                                    center: "title",
-                                    right: "today prev,next",
-                                }}
-                                events={events}
-                                dateClick={handleDateClick}
-                                eventClick={handleEventClick}
-                                selectable
-                                displayEventTime={false}
-                                showNonCurrentDates={false}
-                                fixedWeekCount={false}
-                                height="100%"
-                            />
-                        </div>
-                    </section>
-                )}
+                            <div className="min-h-[700px]">
+                                <FullCalendar
+                                    firstDay={1}
+                                    locale={roLocale}
+                                    plugins={[dayGridPlugin, interactionPlugin]}
+                                    initialView="dayGridMonth"
+                                    headerToolbar={{
+                                        left: "",
+                                        center: "title",
+                                        right: "today prev,next",
+                                    }}
+                                    events={events}
+                                    dateClick={handleDateClick}
+                                    eventClick={handleEventClick}
+                                    selectable
+                                    displayEventTime={false}
+                                    showNonCurrentDates={false}
+                                    fixedWeekCount={false}
+                                    height="auto"
+                                    contentHeight="auto"
+                                />
+                            </div>
+                        </section>
+                    )}
 
                 {activeView === "myEvents" && (
-                    <section className="flex-1 bg-slate-800 rounded-xl border border-slate-700 p-3 md:p-4 flex flex-col overflow-hidden">
+                    <section className="bg-slate-800 rounded-xl border border-slate-700 p-3 md:p-4 overflow-visible">
                         <div className="flex items-center justify-between mb-2">
                             <div className="text-sm text-slate-400">
                                 {loading
@@ -789,7 +790,7 @@ export default function Dashboard() {
                             </button>
                         </div>
 
-                        <div className="flex-1 min-h-0">
+                        <div className="min-h-[700px]">
                             <FullCalendar
                                 firstDay={1}
                                 locale={roLocale}
@@ -805,7 +806,8 @@ export default function Dashboard() {
                                 displayEventTime={false}
                                 showNonCurrentDates={false}
                                 fixedWeekCount={false}
-                                height="100%"
+                                height="auto"
+                                contentHeight="auto"
                             />
                         </div>
                     </section>
