@@ -10,3 +10,13 @@ html, body, #root {
     padding: 0;
     background: #0f172a; /* slate-900 */
 }
+.fc .fc-col-header-cell {
+    background: #1e293b !important; /* slate-800 */
+    border-color: #334155 !important;
+}
+
+.fc .fc-col-header-cell-cushion {
+    color: #f1f5f9 !important;
+    font-size: 13px;
+    text-transform: lowercase; /* lun., mar. */
+}
