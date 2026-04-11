@@ -724,11 +724,10 @@ export default function Dashboard() {
 
                     {activeView === "newEvent" && (
                         <button
-                            onClick={handleSubmit}
-                            disabled={loading}
-                            className="border border-pink-500 text-pink-500 px-4 md:px-6 py-2 rounded-lg hover:bg-pink-500 hover:text-white transition disabled:opacity-50"
+                            onClick={() => setActiveView("calendar")}
+                            className="bg-slate-700 hover:bg-slate-600 px-4 md:px-6 py-2 rounded-lg text-white transition"
                         >
-                            {loading ? "SALVEAZĂ..." : "SALVEAZĂ"}
+                            Înapoi la Calendar
                         </button>
                     )}
                 </header>
@@ -1125,14 +1124,7 @@ export default function Dashboard() {
                             </div>
                         </div>
 
-                        <div className="flex flex-col sm:flex-row gap-3 sm:justify-between mt-10">
-                            <button
-                                onClick={() => setActiveView("calendar")}
-                                className="bg-slate-700 hover:bg-slate-600 px-6 py-2 rounded-lg"
-                            >
-                                Înapoi la Calendar
-                            </button>
-
+                        <div className="flex justify-end mt-10">
                             <button
                                 onClick={handleSubmit}
                                 disabled={loading}
@@ -1147,7 +1139,8 @@ export default function Dashboard() {
                 {/* EDIT MODAL */}
                 {isOpen && (
                     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-3">
-                        <div className="bg-slate-800 w-full max-w-5xl rounded-xl p-5 md:p-8 border border-slate-700 relative max-h-[90vh] overflow-y-auto">
+                        <div
+                            className="bg-slate-800 w-full max-w-5xl rounded-xl p-5 md:p-8 border border-slate-700 relative max-h-[90vh] overflow-y-auto">
                             <h2 className="text-xl md:text-3xl font-semibold text-center mb-6">
                                 Modifică Eveniment
                             </h2>
