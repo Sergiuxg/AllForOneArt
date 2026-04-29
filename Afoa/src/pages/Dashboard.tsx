@@ -179,7 +179,10 @@ export default function Dashboard() {
     const [editingEventId, setEditingEventId] = useState<string | null>(null);
     const [formData, setFormData] = useState<EventForm>(emptyForm);
 
-    const [manualFullDates, setManualFullDates] = useState<string[]>([]);
+    const [manualFullDates, setManualFullDates] = useState<string[]>(() => {
+        const saved = localStorage.getItem("manualFullDates");
+        return saved ? JSON.parse(saved) : [];
+    });
 
     const [formError, setFormError] = useState<string | null>(null);
     const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
@@ -190,6 +193,8 @@ export default function Dashboard() {
     const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
     const [dancers, setDancers] = useState<string[]>([]);
+
+    const [deleteDate, setDeleteDate] = useState<string | null>(null);
 
     const userName = getUserName();
 
@@ -222,6 +227,10 @@ export default function Dashboard() {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        localStorage.setItem("manualFullDates", JSON.stringify(manualFullDates));
+    }, [manualFullDates]);
 
     useEffect(() => {
         reloadEvents();
@@ -942,14 +951,14 @@ export default function Dashboard() {
                                 {fullDates.map(([date, count]) => (
                                     <div
                                         key={date}
-                                        className="bg-slate-900 border border-slate-700 rounded-lg p-4 flex justify-between items-center"
+                                        onClick={() => setDeleteDate(date)}
+                                        className="bg-slate-900 border border-slate-700 rounded-lg p-4 flex justify-between items-center cursor-pointer hover:bg-slate-700 transition"
                                     >
                                         <span>{date}</span>
 
                                         <span className="bg-red-600 px-3 py-1 rounded-full text-sm">
-    {count} evenimente
-                                            {count < 5 ? " / rezervată manual" : ""}
-</span>
+            {count} evenimente
+        </span>
                                     </div>
                                 ))}
                             </div>
@@ -1706,6 +1715,40 @@ export default function Dashboard() {
                                     className="bg-red-600 hover:bg-red-500 px-4 py-2 rounded-lg"
                                 >
                                     Da
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+                {deleteDate && (
+                    <div className="fixed inset-0 bg-black/60 z-[80] flex items-center justify-center p-4">
+                        <div className="w-full max-w-md bg-slate-900 border border-slate-700 rounded-2xl p-6">
+                            <h3 className="text-lg font-semibold mb-3">
+                                Ștergere dată
+                            </h3>
+
+                            <p className="text-slate-300 mb-6">
+                                Sigur vrei să ștergi data {deleteDate}?
+                            </p>
+
+                            <div className="flex gap-3 justify-end">
+                                <button
+                                    onClick={() => setDeleteDate(null)}
+                                    className="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-lg"
+                                >
+                                    Nu
+                                </button>
+
+                                <button
+                                    onClick={() => {
+                                        setManualFullDates((prev) =>
+                                            prev.filter((d) => d !== deleteDate)
+                                        );
+                                        setDeleteDate(null);
+                                    }}
+                                    className="bg-red-600 hover:bg-red-500 px-4 py-2 rounded-lg"
+                                >
+                                    Da, șterge
                                 </button>
                             </div>
                         </div>
