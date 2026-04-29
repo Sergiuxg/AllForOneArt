@@ -168,7 +168,7 @@ export default function Dashboard() {
     );
 
     const [activeView, setActiveView] = useState<
-        "calendar" | "newEvent" | "myEvents" | "stats"
+        "calendar" | "newEvent" | "myEvents" | "stats" | "fullDates"
     >("calendar");
 
     const [events, setEvents] = useState<EventInput[]>([]);
@@ -435,6 +435,21 @@ export default function Dashboard() {
         return stats;
     }, [events, dancers]);
 
+    const fullDates = useMemo(() => {
+        const dates: Record<string, number> = {};
+
+        events.forEach((ev) => {
+            const date = String(ev.start || "");
+            if (!date) return;
+
+            dates[date] = (dates[date] || 0) + 1;
+        });
+
+        return Object.entries(dates)
+            .filter(([, count]) => count >= 5)
+            .sort(([a], [b]) => a.localeCompare(b));
+    }, [events]);
+
     const renderDancersSelects = () => {
         const nr = Math.max(1, Math.min(4, Number(formData.nrPerechi || 1)));
         const dancersSelected = ensureDancersLength(formData.dancers || [], nr);
@@ -556,6 +571,20 @@ export default function Dashboard() {
                         }`}
                     >
                         Statistici
+                    </button>
+
+                    <button
+                        onClick={() => {
+                            setActiveView("fullDates");
+                            setIsOpen(false);
+                        }}
+                        className={`px-6 py-2 rounded-lg text-left transition ${
+                            activeView === "fullDates"
+                                ? "bg-red-600 text-white"
+                                : "hover:bg-slate-700/40"
+                        }`}
+                    >
+                        Date rezervate complet
                     </button>
                 </nav>
 
@@ -698,6 +727,21 @@ export default function Dashboard() {
                                 >
                                     Statistici
                                 </button>
+
+                                <button
+                                    onClick={() => {
+                                        setActiveView("fullDates");
+                                        setIsOpen(false);
+                                        setMobileMenuOpen(false);
+                                    }}
+                                    className={`px-4 py-3 rounded-lg text-left transition ${
+                                        activeView === "fullDates"
+                                            ? "bg-red-600 text-white"
+                                            : "hover:bg-slate-700/40"
+                                    }`}
+                                >
+                                    Date rezervate complet
+                                </button>
                             </nav>
                         </div>
                     </div>
@@ -712,7 +756,9 @@ export default function Dashboard() {
                                     ? "Eveniment Nou"
                                     : activeView === "myEvents"
                                         ? "Evenimentele mele"
-                                        : "Statistici"}
+                                        : activeView === "stats"
+                                            ? "Statistici"
+                                            : "Date rezervate complet"}
                         </p>
                         <h1 className="text-xl md:text-2xl font-semibold">
                             All For One Art
@@ -833,6 +879,38 @@ export default function Dashboard() {
                                         <span className="bg-red-600 px-3 py-1 rounded-full text-sm">
                                             {dancersStats[name] || 0}
                                         </span>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </section>
+                )}
+                {activeView === "fullDates" && (
+                    <section className="flex-1 bg-slate-800 rounded-xl border border-slate-700 p-4 md:p-6 overflow-y-auto">
+                        <h2 className="text-lg md:text-xl font-semibold mb-4">
+                            Date rezervate complet
+                        </h2>
+
+                        <p className="text-slate-400 mb-5">
+                            Aici apar datele care au minim 5 evenimente adăugate.
+                        </p>
+
+                        {fullDates.length === 0 ? (
+                            <div className="text-slate-400">
+                                Nu există date cu 5 sau mai multe evenimente.
+                            </div>
+                        ) : (
+                            <div className="space-y-3">
+                                {fullDates.map(([date, count]) => (
+                                    <div
+                                        key={date}
+                                        className="bg-slate-900 border border-slate-700 rounded-lg p-4 flex justify-between items-center"
+                                    >
+                                        <span>{date}</span>
+
+                                        <span className="bg-red-600 px-3 py-1 rounded-full text-sm">
+                            {count} evenimente
+                        </span>
                                     </div>
                                 ))}
                             </div>
