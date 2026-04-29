@@ -184,6 +184,9 @@ export default function Dashboard() {
     const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+    const [showCalendarFilter, setShowCalendarFilter] = useState(false);
+    const [selectedDate, setSelectedDate] = useState<string | null>(null);
+
     const [dancers, setDancers] = useState<string[]>([]);
 
     const userName = getUserName();
@@ -282,6 +285,19 @@ export default function Dashboard() {
         });
         setActiveView("newEvent");
     };
+
+    const handleFullDateClick = (info: DateClickArg) => {
+        setSelectedDate(info.dateStr);
+    };
+    const eventsForSelectedDate = useMemo(() => {
+        if (!selectedDate) return [];
+
+        return events.filter((ev) => {
+            const date = String((ev as any).start || "");
+            return date === selectedDate;
+        });
+    }, [events, selectedDate]);
+
 
     const buildPayload = (id?: string): ApiEvent => {
         const eventId = id || editingEventId || Date.now().toString();
@@ -887,6 +903,7 @@ export default function Dashboard() {
                 )}
                 {activeView === "fullDates" && (
                     <section className="flex-1 bg-slate-800 rounded-xl border border-slate-700 p-4 md:p-6 overflow-y-auto">
+
                         <h2 className="text-lg md:text-xl font-semibold mb-4">
                             Date rezervate complet
                         </h2>
@@ -895,12 +912,13 @@ export default function Dashboard() {
                             Aici apar datele care au minim 5 evenimente adăugate.
                         </p>
 
+                        {/* LISTA DATE FULL */}
                         {fullDates.length === 0 ? (
-                            <div className="text-slate-400">
+                            <div className="text-slate-400 mb-6">
                                 Nu există date cu 5 sau mai multe evenimente.
                             </div>
                         ) : (
-                            <div className="space-y-3">
+                            <div className="space-y-3 mb-8">
                                 {fullDates.map(([date, count]) => (
                                     <div
                                         key={date}
@@ -913,6 +931,64 @@ export default function Dashboard() {
                         </span>
                                     </div>
                                 ))}
+                            </div>
+                        )}
+
+                        {/* BUTON AFIȘARE CALENDAR */}
+                        <div className="mb-6">
+                            <button
+                                onClick={() => setShowCalendarFilter((p) => !p)}
+                                className="bg-blue-600 hover:bg-blue-500 px-5 py-2 rounded-lg"
+                            >
+                                {showCalendarFilter ? "Ascunde calendar" : "Alege dată din calendar"}
+                            </button>
+                        </div>
+
+                        {/* CALENDAR SELECTARE */}
+                        {showCalendarFilter && (
+                            <div className="mb-6 bg-slate-900 p-4 rounded-lg border border-slate-700">
+                                <FullCalendar
+                                    firstDay={1}
+                                    locale={roLocale}
+                                    plugins={[dayGridPlugin, interactionPlugin]}
+                                    initialView="dayGridMonth"
+                                    headerToolbar={{
+                                        left: "",
+                                        center: "title",
+                                        right: "today prev,next",
+                                    }}
+                                    events={[]} // fără evenimente
+                                    dateClick={handleFullDateClick}
+                                    selectable
+                                    displayEventTime={false}
+                                    height="auto"
+                                />
+                            </div>
+                        )}
+
+                        {/* REZULTAT DUPĂ SELECTARE */}
+                        {selectedDate && (
+                            <div className="mt-6">
+                                <h3 className="text-lg font-semibold mb-3">
+                                    Evenimente pentru data: {selectedDate}
+                                </h3>
+
+                                {eventsForSelectedDate.length === 0 ? (
+                                    <div className="text-slate-400">
+                                        Nu există evenimente pe această dată.
+                                    </div>
+                                ) : (
+                                    <div className="space-y-2">
+                                        {eventsForSelectedDate.map((ev) => (
+                                            <div
+                                                key={ev.id}
+                                                className="bg-slate-900 border border-slate-700 rounded-md p-3"
+                                            >
+                                                {(ev as any).title}
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         )}
                     </section>
