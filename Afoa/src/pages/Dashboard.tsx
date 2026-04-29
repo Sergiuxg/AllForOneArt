@@ -289,13 +289,14 @@ export default function Dashboard() {
     const handleFullDateClick = (info: DateClickArg) => {
         setSelectedDate(info.dateStr);
     };
-    const eventsForSelectedDate = useMemo(() => {
-        if (!selectedDate) return [];
+
+    const selectedDateCount = useMemo(() => {
+        if (!selectedDate) return 0;
 
         return events.filter((ev) => {
             const date = String((ev as any).start || "");
             return date === selectedDate;
-        });
+        }).length;
     }, [events, selectedDate]);
 
 
@@ -962,31 +963,32 @@ export default function Dashboard() {
                                     selectable
                                     displayEventTime={false}
                                     height="auto"
+                                    contentHeight="auto"
                                 />
                             </div>
                         )}
 
                         {/* REZULTAT DUPĂ SELECTARE */}
                         {selectedDate && (
-                            <div className="mt-6">
+                            <div className="mt-6 bg-slate-900 border border-slate-700 rounded-xl p-4">
                                 <h3 className="text-lg font-semibold mb-3">
-                                    Evenimente pentru data: {selectedDate}
+                                    Data selectată: {selectedDate}
                                 </h3>
 
-                                {eventsForSelectedDate.length === 0 ? (
-                                    <div className="text-slate-400">
-                                        Nu există evenimente pe această dată.
+                                <div className="text-slate-300 mb-2">
+                                    Număr evenimente:{" "}
+                                    <span className="font-semibold text-white">
+                {selectedDateCount}
+            </span>
+                                </div>
+
+                                {selectedDateCount >= 5 ? (
+                                    <div className="text-red-400 font-semibold">
+                                        Data este COMPLET REZERVATĂ
                                     </div>
-                                ) : (
-                                    <div className="space-y-2">
-                                        {eventsForSelectedDate.map((ev) => (
-                                            <div
-                                                key={ev.id}
-                                                className="bg-slate-900 border border-slate-700 rounded-md p-3"
-                                            >
-                                                {(ev as any).title}
-                                            </div>
-                                        ))}
+                                )  : (
+                                    <div className="text-green-400">
+                                        Data este liberă
                                     </div>
                                 )}
                             </div>
