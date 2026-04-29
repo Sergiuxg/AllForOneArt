@@ -300,12 +300,14 @@ export default function Dashboard() {
     const handleFullDateClick = (info: DateClickArg) => {
         const date = info.dateStr;
 
-        setSelectedDate(date);
-
+        // adaugă în lista manuală
         setManualFullDates((prev) => {
             if (prev.includes(date)) return prev;
             return [...prev, date];
         });
+
+        // 🔥 reset selecția → dispare UI
+        setSelectedDate(null);
     };
 
     const selectedDateCount = useMemo(() => {
