@@ -1,9 +1,9 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, {useEffect, useMemo, useState} from "react";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
+import type {DateClickArg} from "@fullcalendar/interaction";
 import interactionPlugin from "@fullcalendar/interaction";
-import type { EventClickArg, EventInput } from "@fullcalendar/core";
-import type { DateClickArg } from "@fullcalendar/interaction";
+import type {EventClickArg, EventInput} from "@fullcalendar/core";
 import roLocale from "@fullcalendar/core/locales/ro";
 
 type EventType = "Nunta" | "Cumătrie" | "Altceva";
@@ -95,7 +95,7 @@ async function apiRequest(path: string, options: RequestInit = {}) {
 }
 
 async function fetchEventsApi(): Promise<EventInput[]> {
-    const res = await apiRequest("/events", { method: "GET" });
+    const res = await apiRequest("/events", {method: "GET"});
     const data = (await res.json()) as ApiEvent[];
 
     return (Array.isArray(data) ? data : []).map((e) => ({
@@ -124,7 +124,7 @@ async function updateEventApi(id: string, payload: ApiEvent) {
 }
 
 async function deleteEventApi(id: string) {
-    await apiRequest(`/events/${id}`, { method: "DELETE" });
+    await apiRequest(`/events/${id}`, {method: "DELETE"});
 }
 
 function ensureDancersLength(dancers: string[], nrPerechi: number) {
@@ -178,6 +178,8 @@ export default function Dashboard() {
     const [isOpen, setIsOpen] = useState(false);
     const [editingEventId, setEditingEventId] = useState<string | null>(null);
     const [formData, setFormData] = useState<EventForm>(emptyForm);
+
+    const [manualFullDates, setManualFullDates] = useState<string[]>([]);
 
     const [formError, setFormError] = useState<string | null>(null);
     const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
@@ -265,7 +267,7 @@ export default function Dashboard() {
 
         const copy = [...current];
         copy[index] = value;
-        setFormData((p) => ({ ...p, dancers: copy }));
+        setFormData((p) => ({...p, dancers: copy}));
     };
 
     const handleNrPerechiChange = (value: number) => {
@@ -287,7 +289,14 @@ export default function Dashboard() {
     };
 
     const handleFullDateClick = (info: DateClickArg) => {
-        setSelectedDate(info.dateStr);
+        const date = info.dateStr;
+
+        setSelectedDate(date);
+
+        setManualFullDates((prev) => {
+            if (prev.includes(date)) return prev;
+            return [...prev, date];
+        });
     };
 
     const selectedDateCount = useMemo(() => {
@@ -361,8 +370,8 @@ export default function Dashboard() {
         >
     ) => {
         setFormError(null);
-        const { name, value } = e.target;
-        setFormData((p) => ({ ...p, [name]: value }));
+        const {name, value} = e.target;
+        setFormData((p) => ({...p, [name]: value}));
     };
 
     const handleSubmit = async () => {
@@ -462,10 +471,16 @@ export default function Dashboard() {
             dates[date] = (dates[date] || 0) + 1;
         });
 
+        manualFullDates.forEach((date) => {
+            if (!dates[date]) {
+                dates[date] = 0;
+            }
+        });
+
         return Object.entries(dates)
-            .filter(([, count]) => count >= 5)
+            .filter(([date, count]) => count >= 5 || manualFullDates.includes(date))
             .sort(([a], [b]) => a.localeCompare(b));
-    }, [events]);
+    }, [events, manualFullDates]);
 
     const renderDancersSelects = () => {
         const nr = Math.max(1, Math.min(4, Number(formData.nrPerechi || 1)));
@@ -478,7 +493,7 @@ export default function Dashboard() {
                 </label>
 
                 <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                    {Array.from({ length: nr * 2 }).map((_, idx) => (
+                    {Array.from({length: nr * 2}).map((_, idx) => (
                         <div
                             key={idx}
                             className="bg-slate-900/40 border border-slate-700 rounded-lg p-3"
@@ -517,7 +532,8 @@ export default function Dashboard() {
     };
 
     return (
-        <div className="min-h-screen w-full bg-gradient-to-br from-slate-900 to-slate-800 text-slate-100 flex flex-col md:flex-row">
+        <div
+            className="min-h-screen w-full bg-gradient-to-br from-slate-900 to-slate-800 text-slate-100 flex flex-col md:flex-row">
             {/* DESKTOP SIDEBAR */}
             <aside className="hidden md:flex w-64 bg-slate-900/90 border-r border-slate-700 p-5 flex-col">
                 <div className="flex items-center gap-3 mb-8">
@@ -617,7 +633,8 @@ export default function Dashboard() {
 
             <main className="flex-1 flex flex-col overflow-y-auto p-3 md:p-6">
                 {/* MOBILE TOP BAR */}
-                <div className="md:hidden flex items-center justify-between mb-4 bg-slate-900/90 border border-slate-700 rounded-xl px-4 py-3">
+                <div
+                    className="md:hidden flex items-center justify-between mb-4 bg-slate-900/90 border border-slate-700 rounded-xl px-4 py-3">
                     <div className="flex items-center gap-3">
                         <button
                             onClick={() => setMobileMenuOpen(true)}
@@ -795,45 +812,45 @@ export default function Dashboard() {
                     )}
                 </header>
 
-                    {activeView === "calendar" && (
-                        <section className="bg-slate-800 rounded-xl border border-slate-700 p-3 md:p-4">
-                            <div className="flex items-center justify-between mb-2">
-                                <div className="text-sm text-slate-400">
-                                    {loading ? "Se încarcă..." : `${events.length} evenimente`}
-                                </div>
-                                <button
-                                    onClick={reloadEvents}
-                                    disabled={loading}
-                                    className="text-sm px-3 py-1 rounded-md bg-slate-700 hover:bg-slate-600 disabled:opacity-50"
-                                >
-                                    Refresh
-                                </button>
+                {activeView === "calendar" && (
+                    <section className="bg-slate-800 rounded-xl border border-slate-700 p-3 md:p-4">
+                        <div className="flex items-center justify-between mb-2">
+                            <div className="text-sm text-slate-400">
+                                {loading ? "Se încarcă..." : `${events.length} evenimente`}
                             </div>
+                            <button
+                                onClick={reloadEvents}
+                                disabled={loading}
+                                className="text-sm px-3 py-1 rounded-md bg-slate-700 hover:bg-slate-600 disabled:opacity-50"
+                            >
+                                Refresh
+                            </button>
+                        </div>
 
-                            <div>
-                                <FullCalendar
-                                    firstDay={1}
-                                    locale={roLocale}
-                                    plugins={[dayGridPlugin, interactionPlugin]}
-                                    initialView="dayGridMonth"
-                                    headerToolbar={{
-                                        left: "",
-                                        center: "title",
-                                        right: "today prev,next",
-                                    }}
-                                    events={events}
-                                    dateClick={handleDateClick}
-                                    eventClick={handleEventClick}
-                                    selectable
-                                    displayEventTime={false}
-                                    showNonCurrentDates={false}
-                                    fixedWeekCount={false}
-                                    height="auto"
-                                    contentHeight="auto"
-                                />
-                            </div>
-                        </section>
-                    )}
+                        <div>
+                            <FullCalendar
+                                firstDay={1}
+                                locale={roLocale}
+                                plugins={[dayGridPlugin, interactionPlugin]}
+                                initialView="dayGridMonth"
+                                headerToolbar={{
+                                    left: "",
+                                    center: "title",
+                                    right: "today prev,next",
+                                }}
+                                events={events}
+                                dateClick={handleDateClick}
+                                eventClick={handleEventClick}
+                                selectable
+                                displayEventTime={false}
+                                showNonCurrentDates={false}
+                                fixedWeekCount={false}
+                                height="auto"
+                                contentHeight="auto"
+                            />
+                        </div>
+                    </section>
+                )}
 
                 {activeView === "myEvents" && (
                     <section className="bg-slate-800 rounded-xl border border-slate-700 p-3 md:p-4">
@@ -876,7 +893,8 @@ export default function Dashboard() {
                 )}
 
                 {activeView === "stats" && (
-                    <section className="flex-1 bg-slate-800 rounded-xl border border-slate-700 p-4 md:p-6 overflow-y-auto">
+                    <section
+                        className="flex-1 bg-slate-800 rounded-xl border border-slate-700 p-4 md:p-6 overflow-y-auto">
                         <h2 className="text-lg md:text-xl font-semibold mb-4">
                             Statistici Dansatori
                         </h2>
@@ -903,7 +921,8 @@ export default function Dashboard() {
                     </section>
                 )}
                 {activeView === "fullDates" && (
-                    <section className="flex-1 bg-slate-800 rounded-xl border border-slate-700 p-4 md:p-6 overflow-y-auto">
+                    <section
+                        className="flex-1 bg-slate-800 rounded-xl border border-slate-700 p-4 md:p-6 overflow-y-auto">
 
                         <h2 className="text-lg md:text-xl font-semibold mb-4">
                             Date rezervate complet
@@ -928,8 +947,9 @@ export default function Dashboard() {
                                         <span>{date}</span>
 
                                         <span className="bg-red-600 px-3 py-1 rounded-full text-sm">
-                            {count} evenimente
-                        </span>
+    {count} evenimente
+                                            {count < 5 ? " / rezervată manual" : ""}
+</span>
                                     </div>
                                 ))}
                             </div>
@@ -986,7 +1006,7 @@ export default function Dashboard() {
                                     <div className="text-red-400 font-semibold">
                                         Data este COMPLET REZERVATĂ
                                     </div>
-                                )  : (
+                                ) : (
                                     <div className="text-green-400">
                                         Data este liberă
                                     </div>
@@ -997,7 +1017,8 @@ export default function Dashboard() {
                 )}
 
                 {activeView === "newEvent" && (
-                    <section className="flex-1 bg-slate-800 rounded-xl border border-slate-700 p-5 md:p-10 overflow-y-auto">
+                    <section
+                        className="flex-1 bg-slate-800 rounded-xl border border-slate-700 p-5 md:p-10 overflow-y-auto">
                         {formError && (
                             <div className="mb-5 bg-red-500/20 text-red-300 p-3 rounded-lg border border-red-500/30">
                                 {formError}
@@ -1309,7 +1330,8 @@ export default function Dashboard() {
                             </button>
 
                             {formError && (
-                                <div className="mb-5 bg-red-500/20 text-red-300 p-3 rounded-lg border border-red-500/30">
+                                <div
+                                    className="mb-5 bg-red-500/20 text-red-300 p-3 rounded-lg border border-red-500/30">
                                     {formError}
                                 </div>
                             )}
@@ -1597,7 +1619,8 @@ export default function Dashboard() {
                                     />
                                 </div>
 
-                                <div className="lg:col-span-4 flex flex-col sm:flex-row justify-center items-center gap-4 mt-4">
+                                <div
+                                    className="lg:col-span-4 flex flex-col sm:flex-row justify-center items-center gap-4 mt-4">
                                     <button
                                         onClick={handleSubmit}
                                         disabled={loading}
@@ -1625,7 +1648,8 @@ export default function Dashboard() {
 
                             {deleteConfirmOpen && (
                                 <div className="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4">
-                                    <div className="w-full max-w-md bg-slate-900 border border-slate-700 rounded-2xl p-6">
+                                    <div
+                                        className="w-full max-w-md bg-slate-900 border border-slate-700 rounded-2xl p-6">
                                         <h3 className="text-lg font-semibold mb-3">
                                             Confirmare ștergere
                                         </h3>
