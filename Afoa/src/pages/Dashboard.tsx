@@ -198,6 +198,11 @@ export default function Dashboard() {
 
     const userName = getUserName();
 
+    const canSeeFullDates =
+        userName.trim() === "Corneliu Spînu" ||
+        userName.trim() === "Daniela Spînu" ||
+        userName.trim() === "Sergiu Gorceag";
+
     const closeModal = () => {
         setIsOpen(false);
         setEditingEventId(null);
@@ -261,6 +266,12 @@ export default function Dashboard() {
                 setDancers([]);
             });
     }, []);
+
+    useEffect(() => {
+        if (activeView === "fullDates" && !canSeeFullDates) {
+            setActiveView("calendar");
+        }
+    }, [activeView, canSeeFullDates]);
 
     const handleDancerChange = (index: number, value: string) => {
         setFormError(null);
@@ -617,19 +628,21 @@ export default function Dashboard() {
                         Statistici
                     </button>
 
-                    <button
-                        onClick={() => {
-                            setActiveView("fullDates");
-                            setIsOpen(false);
-                        }}
-                        className={`px-6 py-2 rounded-lg text-left transition ${
-                            activeView === "fullDates"
-                                ? "bg-red-600 text-white"
-                                : "hover:bg-slate-700/40"
-                        }`}
-                    >
-                        Date rezervate complet
-                    </button>
+                    {canSeeFullDates && (
+                        <button
+                            onClick={() => {
+                                setActiveView("fullDates");
+                                setIsOpen(false);
+                            }}
+                            className={`px-6 py-2 rounded-lg text-left transition ${
+                                activeView === "fullDates"
+                                    ? "bg-red-600 text-white"
+                                    : "hover:bg-slate-700/40"
+                            }`}
+                        >
+                            Date rezervate complet
+                        </button>
+                    )}
                 </nav>
 
                 <div className="mt-auto pt-6">
@@ -773,20 +786,22 @@ export default function Dashboard() {
                                     Statistici
                                 </button>
 
-                                <button
-                                    onClick={() => {
-                                        setActiveView("fullDates");
-                                        setIsOpen(false);
-                                        setMobileMenuOpen(false);
-                                    }}
-                                    className={`px-4 py-3 rounded-lg text-left transition ${
-                                        activeView === "fullDates"
-                                            ? "bg-red-600 text-white"
-                                            : "hover:bg-slate-700/40"
-                                    }`}
-                                >
-                                    Date rezervate complet
-                                </button>
+                                {canSeeFullDates && (
+                                    <button
+                                        onClick={() => {
+                                            setActiveView("fullDates");
+                                            setIsOpen(false);
+                                            setMobileMenuOpen(false);
+                                        }}
+                                        className={`px-4 py-3 rounded-lg text-left transition ${
+                                            activeView === "fullDates"
+                                                ? "bg-red-600 text-white"
+                                                : "hover:bg-slate-700/40"
+                                        }`}
+                                    >
+                                        Date rezervate complet
+                                    </button>
+                                )}
                             </nav>
                         </div>
                     </div>
