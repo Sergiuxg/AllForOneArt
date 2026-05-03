@@ -198,6 +198,14 @@ export default function Dashboard() {
 
     const userName = getUserName();
 
+    const adminUsers = [
+        "Corneliu Spînu",
+        "Daniela Spînu",
+        "Sergiu Gorceag",
+    ];
+
+    const isAdmin = adminUsers.includes(userName.trim());
+
     const canSeeFullDates =
         userName.trim() === "Corneliu Spînu" ||
         userName.trim() === "Daniela Spînu" ||
@@ -240,6 +248,12 @@ export default function Dashboard() {
     useEffect(() => {
         reloadEvents();
     }, []);
+
+    useEffect(() => {
+        if (activeView === "newEvent" && !isAdmin) {
+            setActiveView("calendar");
+        }
+    }, [activeView, isAdmin]);
 
     useEffect(() => {
         const token = localStorage.getItem(TOKEN_KEY);
@@ -356,6 +370,7 @@ export default function Dashboard() {
     };
 
     const handleEventClick = (info: EventClickArg) => {
+        if (!isAdmin) return;
         const event = info?.event;
         if (!event) return;
 
@@ -589,16 +604,18 @@ export default function Dashboard() {
                         Dashboard
                     </button>
 
-                    <button
-                        onClick={openNewEvent}
-                        className={`px-6 py-2 rounded-lg text-left transition ${
-                            activeView === "newEvent"
-                                ? "bg-red-600 text-white"
-                                : "hover:bg-slate-700/40"
-                        }`}
-                    >
-                        Eveniment Nou
-                    </button>
+                    {isAdmin && (
+                        <button
+                            onClick={openNewEvent}
+                            className={`px-6 py-2 rounded-lg text-left transition ${
+                                activeView === "newEvent"
+                                    ? "bg-red-600 text-white"
+                                    : "hover:bg-slate-700/40"
+                            }`}
+                        >
+                            Eveniment Nou
+                        </button>
+                    )}
 
                     <button
                         onClick={() => {
@@ -742,19 +759,21 @@ export default function Dashboard() {
                                     Dashboard
                                 </button>
 
-                                <button
-                                    onClick={() => {
-                                        openNewEvent();
-                                        setMobileMenuOpen(false);
-                                    }}
-                                    className={`px-4 py-3 rounded-lg text-left transition ${
-                                        activeView === "newEvent"
-                                            ? "bg-red-600 text-white"
-                                            : "hover:bg-slate-700/40"
-                                    }`}
-                                >
-                                    Eveniment Nou
-                                </button>
+                                {isAdmin && (
+                                    <button
+                                        onClick={() => {
+                                            openNewEvent();
+                                            setMobileMenuOpen(false);
+                                        }}
+                                        className={`px-4 py-3 rounded-lg text-left transition ${
+                                            activeView === "newEvent"
+                                                ? "bg-red-600 text-white"
+                                                : "hover:bg-slate-700/40"
+                                        }`}
+                                    >
+                                        Eveniment Nou
+                                    </button>
+                                )}
 
                                 <button
                                     onClick={() => {
@@ -786,7 +805,7 @@ export default function Dashboard() {
                                     Statistici
                                 </button>
 
-                                {canSeeFullDates && (
+                                {isAdmin && (
                                     <button
                                         onClick={() => {
                                             setActiveView("fullDates");
@@ -865,9 +884,9 @@ export default function Dashboard() {
                                     right: "today prev,next",
                                 }}
                                 events={events}
-                                dateClick={handleDateClick}
                                 eventClick={handleEventClick}
-                                selectable
+                                dateClick={isAdmin ? handleDateClick : undefined}
+                                selectable={isAdmin}
                                 displayEventTime={false}
                                 showNonCurrentDates={false}
                                 fixedWeekCount={false}
