@@ -370,7 +370,7 @@ export default function Dashboard() {
     };
 
     const handleEventClick = (info: EventClickArg) => {
-        if (!isAdmin) return;
+
         const event = info?.event;
         if (!event) return;
 
@@ -1078,6 +1078,7 @@ export default function Dashboard() {
                                     name="date"
                                     value={formData.date}
                                     onChange={handleChange}
+                                    disabled={!isAdmin}
                                     className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
                                 />
                             </div>
@@ -1091,6 +1092,7 @@ export default function Dashboard() {
                                     name="time"
                                     value={formData.time}
                                     onChange={handleChange}
+                                    disabled={!isAdmin}
                                     className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
                                 />
                             </div>
@@ -1103,6 +1105,7 @@ export default function Dashboard() {
                                     name="type"
                                     value={formData.type}
                                     onChange={handleChange}
+                                    disabled={!isAdmin}
                                     className="w-full bg-slate-700 rounded-md p-2 mt-1"
                                 >
                                     <option value="Nunta">Nunta</option>
@@ -1117,6 +1120,7 @@ export default function Dashboard() {
                                     name="status"
                                     value={formData.status}
                                     onChange={handleChange}
+                                    disabled={!isAdmin}
                                     className="w-full bg-slate-700 rounded-md p-2 mt-1"
                                 >
                                     <option value="Semnat">Semnat</option>
@@ -1141,6 +1145,7 @@ export default function Dashboard() {
                                 </label>
                                 <select
                                     value={formData.nrPerechi}
+                                    disabled={!isAdmin}
                                     onChange={(e) =>
                                         handleNrPerechiChange(Number(e.target.value))
                                     }
@@ -1161,6 +1166,7 @@ export default function Dashboard() {
                                     name="location"
                                     value={formData.location}
                                     onChange={handleChange}
+                                    disabled={!isAdmin}
                                     className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
                                 />
                             </div>
@@ -1173,6 +1179,7 @@ export default function Dashboard() {
                                     name="street"
                                     value={formData.street}
                                     onChange={handleChange}
+                                    disabled={!isAdmin}
                                     className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
                                 />
                             </div>
@@ -1183,6 +1190,7 @@ export default function Dashboard() {
                                     name="details"
                                     value={formData.details}
                                     onChange={handleChange}
+                                    disabled={!isAdmin}
                                     className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
                                 />
                             </div>
@@ -1193,6 +1201,7 @@ export default function Dashboard() {
                                     name="miri"
                                     value={formData.miri}
                                     onChange={handleChange}
+                                    disabled={!isAdmin}
                                     className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
                                 />
                             </div>
@@ -1203,6 +1212,7 @@ export default function Dashboard() {
                                     name="contact"
                                     value={formData.contact}
                                     onChange={handleChange}
+                                    disabled={!isAdmin}
                                     className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
                                 />
                             </div>
@@ -1213,6 +1223,7 @@ export default function Dashboard() {
                                     name="price"
                                     value={formData.price}
                                     onChange={handleChange}
+                                    disabled={!isAdmin}
                                     className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
                                 />
                             </div>
@@ -1223,6 +1234,7 @@ export default function Dashboard() {
                                     name="avans"
                                     value={formData.avans}
                                     onChange={handleChange}
+                                    disabled={!isAdmin}
                                     className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
                                 />
                             </div>
@@ -1235,6 +1247,7 @@ export default function Dashboard() {
                                     name="detailsWedding"
                                     value={formData.detailsWedding}
                                     onChange={handleChange}
+                                    disabled={!isAdmin}
                                     className="w-full bg-transparent border-b border-slate-600 py-2 outline-none min-h-[90px]"
                                 />
                             </div>
@@ -1247,6 +1260,7 @@ export default function Dashboard() {
                                     name="moderator"
                                     value={formData.moderator}
                                     onChange={handleChange}
+                                    disabled={!isAdmin}
                                     className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
                                 />
                             </div>
@@ -1259,6 +1273,7 @@ export default function Dashboard() {
                                     name="moderatorContact"
                                     value={formData.moderatorContact}
                                     onChange={handleChange}
+                                    disabled={!isAdmin}
                                     className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
                                 />
                             </div>
@@ -1271,6 +1286,7 @@ export default function Dashboard() {
                                     name="moderatorDetails"
                                     value={formData.moderatorDetails}
                                     onChange={handleChange}
+                                    disabled={!isAdmin}
                                     className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
                                 />
                             </div>
@@ -1283,6 +1299,7 @@ export default function Dashboard() {
                                     name="fotoVideo"
                                     value={formData.fotoVideo}
                                     onChange={handleChange}
+                                    disabled={!isAdmin}
                                     className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
                                 />
                             </div>
@@ -1295,6 +1312,7 @@ export default function Dashboard() {
                                     name="fotoVideoContact"
                                     value={formData.fotoVideoContact}
                                     onChange={handleChange}
+                                    disabled={!isAdmin}
                                     className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
                                 />
                             </div>
@@ -1307,6 +1325,7 @@ export default function Dashboard() {
                                     name="fotoVideoDetails"
                                     value={formData.fotoVideoDetails}
                                     onChange={handleChange}
+                                    disabled={!isAdmin}
                                     className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
                                 />
                             </div>
@@ -1317,6 +1336,7 @@ export default function Dashboard() {
                                     name="muzica"
                                     value={formData.muzica}
                                     onChange={handleChange}
+                                    disabled={!isAdmin}
                                     className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
                                 />
                             </div>
@@ -1329,6 +1349,7 @@ export default function Dashboard() {
                                     name="muzicaContact"
                                     value={formData.muzicaContact}
                                     onChange={handleChange}
+                                    disabled={!isAdmin}
                                     className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
                                 />
                             </div>
@@ -1341,6 +1362,7 @@ export default function Dashboard() {
                                     name="muzicaDetails"
                                     value={formData.muzicaDetails}
                                     onChange={handleChange}
+                                    disabled={!isAdmin}
                                     className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
                                 />
                             </div>
@@ -1389,6 +1411,7 @@ export default function Dashboard() {
                                         name="date"
                                         value={formData.date}
                                         onChange={handleChange}
+                                        disabled={!isAdmin}
                                         className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
                                     />
                                 </div>
@@ -1400,6 +1423,7 @@ export default function Dashboard() {
                                         name="time"
                                         value={formData.time}
                                         onChange={handleChange}
+                                        disabled={!isAdmin}
                                         className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
                                     />
                                 </div>
@@ -1410,6 +1434,7 @@ export default function Dashboard() {
                                         name="type"
                                         value={formData.type}
                                         onChange={handleChange}
+                                        disabled={!isAdmin}
                                         className="w-full bg-slate-700 rounded-md p-2 mt-1"
                                     >
                                         <option value="Nunta">Nunta</option>
@@ -1426,6 +1451,7 @@ export default function Dashboard() {
                                         name="status"
                                         value={formData.status}
                                         onChange={handleChange}
+                                        disabled={!isAdmin}
                                         className="w-full bg-slate-700 rounded-md p-2 mt-1"
                                     >
                                         <option value="Semnat">Semnat</option>
@@ -1442,6 +1468,7 @@ export default function Dashboard() {
                                         name="color"
                                         value={formData.color}
                                         onChange={handleChange}
+                                        disabled={!isAdmin}
                                         className="h-10 w-16 bg-transparent mt-2"
                                     />
                                 </div>
@@ -1455,6 +1482,7 @@ export default function Dashboard() {
                                         onChange={(e) =>
                                             handleNrPerechiChange(Number(e.target.value))
                                         }
+                                        disabled={!isAdmin}
                                         className="w-full bg-slate-700 rounded-md p-2 mt-1"
                                     >
                                         <option value={1}>1 pereche</option>
@@ -1474,6 +1502,7 @@ export default function Dashboard() {
                                         name="location"
                                         value={formData.location}
                                         onChange={handleChange}
+                                        disabled={!isAdmin}
                                         className="w-full border border-pink-500 rounded-md p-2 bg-transparent outline-none"
                                     />
                                 </div>
@@ -1486,6 +1515,7 @@ export default function Dashboard() {
                                         name="street"
                                         value={formData.street}
                                         onChange={handleChange}
+                                        disabled={!isAdmin}
                                         className="w-full border border-pink-500 rounded-md p-2 bg-transparent outline-none"
                                     />
                                 </div>
@@ -1498,6 +1528,7 @@ export default function Dashboard() {
                                         name="details"
                                         value={formData.details}
                                         onChange={handleChange}
+                                        disabled={!isAdmin}
                                         className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
                                     />
                                 </div>
@@ -1508,6 +1539,7 @@ export default function Dashboard() {
                                         name="miri"
                                         value={formData.miri}
                                         onChange={handleChange}
+                                        disabled={!isAdmin}
                                         className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
                                     />
                                 </div>
@@ -1520,6 +1552,7 @@ export default function Dashboard() {
                                         name="contact"
                                         value={formData.contact}
                                         onChange={handleChange}
+                                        disabled={!isAdmin}
                                         className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
                                     />
                                 </div>
@@ -1530,6 +1563,7 @@ export default function Dashboard() {
                                         name="price"
                                         value={formData.price}
                                         onChange={handleChange}
+                                        disabled={!isAdmin}
                                         className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
                                     />
                                 </div>
@@ -1540,6 +1574,7 @@ export default function Dashboard() {
                                         name="avans"
                                         value={formData.avans}
                                         onChange={handleChange}
+                                        disabled={!isAdmin}
                                         className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
                                     />
                                 </div>
@@ -1552,6 +1587,7 @@ export default function Dashboard() {
                                         name="detailsWedding"
                                         value={formData.detailsWedding}
                                         onChange={handleChange}
+                                        disabled={!isAdmin}
                                         className="w-full bg-transparent border-b border-slate-600 py-2 outline-none min-h-[90px]"
                                     />
                                 </div>
@@ -1564,6 +1600,7 @@ export default function Dashboard() {
                                         name="moderator"
                                         value={formData.moderator}
                                         onChange={handleChange}
+                                        disabled={!isAdmin}
                                         className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
                                     />
                                 </div>
@@ -1576,6 +1613,7 @@ export default function Dashboard() {
                                         name="moderatorContact"
                                         value={formData.moderatorContact}
                                         onChange={handleChange}
+                                        disabled={!isAdmin}
                                         className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
                                     />
                                 </div>
@@ -1588,6 +1626,7 @@ export default function Dashboard() {
                                         name="moderatorDetails"
                                         value={formData.moderatorDetails}
                                         onChange={handleChange}
+                                        disabled={!isAdmin}
                                         className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
                                     />
                                 </div>
@@ -1600,6 +1639,7 @@ export default function Dashboard() {
                                         name="fotoVideo"
                                         value={formData.fotoVideo}
                                         onChange={handleChange}
+                                        disabled={!isAdmin}
                                         className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
                                     />
                                 </div>
@@ -1612,6 +1652,7 @@ export default function Dashboard() {
                                         name="fotoVideoContact"
                                         value={formData.fotoVideoContact}
                                         onChange={handleChange}
+                                        disabled={!isAdmin}
                                         className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
                                     />
                                 </div>
@@ -1624,6 +1665,7 @@ export default function Dashboard() {
                                         name="fotoVideoDetails"
                                         value={formData.fotoVideoDetails}
                                         onChange={handleChange}
+                                        disabled={!isAdmin}
                                         className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
                                     />
                                 </div>
@@ -1636,6 +1678,7 @@ export default function Dashboard() {
                                         name="muzica"
                                         value={formData.muzica}
                                         onChange={handleChange}
+                                        disabled={!isAdmin}
                                         className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
                                     />
                                 </div>
@@ -1648,6 +1691,7 @@ export default function Dashboard() {
                                         name="muzicaContact"
                                         value={formData.muzicaContact}
                                         onChange={handleChange}
+                                        disabled={!isAdmin}
                                         className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
                                     />
                                 </div>
@@ -1660,34 +1704,39 @@ export default function Dashboard() {
                                         name="muzicaDetails"
                                         value={formData.muzicaDetails}
                                         onChange={handleChange}
+                                        disabled={!isAdmin}
                                         className="w-full bg-transparent border-b border-slate-600 py-2 outline-none"
                                     />
                                 </div>
 
                                 <div
                                     className="lg:col-span-4 flex flex-col sm:flex-row justify-center items-center gap-4 mt-4">
-                                    <button
-                                        onClick={handleSubmit}
-                                        disabled={loading}
-                                        className="bg-blue-500 px-6 py-2 rounded-md w-full sm:w-auto disabled:opacity-50"
-                                    >
-                                        {loading ? "Salvez..." : "Salvează"}
-                                    </button>
+                                    {isAdmin && (
+                                        <button
+                                            onClick={handleSubmit}
+                                            disabled={loading}
+                                            className="bg-blue-500 px-6 py-2 rounded-md w-full sm:w-auto disabled:opacity-50"
+                                        >
+                                            {loading ? "Salvez..." : "Salvează"}
+                                        </button>
+                                    )}
 
                                     <button
                                         onClick={closeModal}
                                         className="bg-slate-600 px-6 py-2 rounded-md w-full sm:w-auto"
                                     >
-                                        Anulează
+                                        Închide
                                     </button>
 
-                                    <button
-                                        onClick={askDelete}
-                                        disabled={loading}
-                                        className="bg-red-600 px-6 py-2 rounded-md w-full sm:w-auto disabled:opacity-50"
-                                    >
-                                        Șterge
-                                    </button>
+                                    {isAdmin && (
+                                        <button
+                                            onClick={askDelete}
+                                            disabled={loading}
+                                            className="bg-red-600 px-6 py-2 rounded-md w-full sm:w-auto disabled:opacity-50"
+                                        >
+                                            Șterge
+                                        </button>
+                                    )}
                                 </div>
                             </div>
 
