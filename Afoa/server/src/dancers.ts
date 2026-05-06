@@ -9,7 +9,7 @@ export const dancers = [
     "Nicu Garbuz",
     "Nicolae Sirghi",
     "Ștefan Secrieru",
-    "Maxim Mereuța",
+    "Maxim Musteată",
     "Adriana Munteanu",
     "Daniela Spînu",
     "Carolina Tverdohleb",
