@@ -575,10 +575,10 @@ export default function Dashboard() {
             <aside className="hidden md:flex w-64 bg-slate-900/90 border-r border-slate-700 p-5 flex-col">
                 <div className="flex items-center gap-3 mb-8">
                     <img
-                        src="https://afoa.gnm.md/static//admin/logo.png"
-                        alt="Logo"
-                        className="w-12 h-12"
-                    />
+    src={`${import.meta.env.BASE_URL}logo2.jpg`}
+    alt="All For One Art"
+    className="w-12 h-12 object-contain"
+/>
                     <div className="font-semibold">All For One Art</div>
                 </div>
 
@@ -686,8 +686,8 @@ export default function Dashboard() {
 
                         <div className="flex items-center gap-2">
                             <img
-                                src="https://afoa.gnm.md/static//admin/logo.png"
-                                alt="Logo"
+                                src={`${import.meta.env.BASE_URL}logo.png`}
+                                alt="All For One Art"
                                 className="w-10 h-10"
                             />
                             <div className="text-sm">
@@ -719,8 +719,8 @@ export default function Dashboard() {
                             <div className="flex items-center justify-between mb-6">
                                 <div className="flex items-center gap-3">
                                     <img
-                                        src="https://afoa.gnm.md/static//admin/logo.png"
-                                        alt="Logo"
+                                        src={`${import.meta.env.BASE_URL}logo2.png`}
+                                        alt="All For One Art"
                                         className="w-10 h-10"
                                     />
                                     <div className="font-semibold text-white">
