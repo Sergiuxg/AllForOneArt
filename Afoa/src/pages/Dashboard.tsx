@@ -719,7 +719,7 @@ export default function Dashboard() {
                             <div className="flex items-center justify-between mb-6">
                                 <div className="flex items-center gap-3">
                                     <img
-                                        src={`${import.meta.env.BASE_URL}logo2.png`}
+                                        src={`/logo2.png`}
                                         alt="All For One Art"
                                         className="w-10 h-10"
                                     />
