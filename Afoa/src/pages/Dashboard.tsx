@@ -792,7 +792,7 @@ export default function Dashboard() {
 
                                 <button
                                     onClick={() => {
-                                        setActiveView("stats");
+                                        setActiveView("fullDates");
                                         setIsOpen(false);
                                         setMobileMenuOpen(false);
                                     }}
