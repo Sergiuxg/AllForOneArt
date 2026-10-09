@@ -631,19 +631,21 @@ export default function Dashboard() {
                         Evenimentele mele
                     </button>
 
-                    <button
-                        onClick={() => {
-                            setActiveView("stats");
-                            setIsOpen(false);
-                        }}
-                        className={`px-6 py-2 rounded-lg text-left transition ${
-                            activeView === "stats"
-                                ? "bg-red-600 text-white"
-                                : "hover:bg-slate-700/40"
-                        }`}
-                    >
-                        Statistici
-                    </button>
+                    {isAdmin && (
+    <button
+        onClick={() => {
+            setActiveView("stats");
+            setIsOpen(false);
+        }}
+        className={`px-6 py-2 rounded-lg text-left transition ${
+            activeView === "stats"
+                ? "bg-red-600 text-white"
+                : "hover:bg-slate-700/40"
+        }`}
+    >
+        Statistici
+    </button>
+)}
 
                     {canSeeFullDates && (
                         <button
@@ -790,20 +792,22 @@ export default function Dashboard() {
                                     Evenimentele mele
                                 </button>
 
-                                <button
-                                    onClick={() => {
-                                        setActiveView("fullDates");
-                                        setIsOpen(false);
-                                        setMobileMenuOpen(false);
-                                    }}
-                                    className={`px-4 py-3 rounded-lg text-left transition ${
-                                        activeView === "stats"
-                                            ? "bg-red-600 text-white"
-                                            : "hover:bg-slate-700/40"
-                                    }`}
-                                >
-                                    Statistici
-                                </button>
+                                {isAdmin && (
+    <button
+        onClick={() => {
+            setActiveView("stats");
+            setIsOpen(false);
+            setMobileMenuOpen(false);
+        }}
+        className={`px-4 py-3 rounded-lg text-left transition ${
+            activeView === "stats"
+                ? "bg-red-600 text-white"
+                : "hover:bg-slate-700/40"
+        }`}
+    >
+        Statistici
+    </button>
+)}
 
                                 {isAdmin && (
                                     <button
