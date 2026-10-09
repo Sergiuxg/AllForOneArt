@@ -575,9 +575,9 @@ export default function Dashboard() {
             <aside className="hidden md:flex w-64 bg-slate-900/90 border-r border-slate-700 p-5 flex-col">
                 <div className="flex items-center gap-3 mb-8">
                     <img
-    src={`/logo2.jpg`}
+    src="/logo2.png"
     alt="All For One Art"
-    className="w-12 h-12 object-contain"
+    className="w-10 h-10 object-contain"
 />
                     <div className="font-semibold">All For One Art</div>
                 </div>
@@ -686,10 +686,10 @@ export default function Dashboard() {
 
                         <div className="flex items-center gap-2">
                             <img
-                                src={`/logo.png`}
-                                alt="All For One Art"
-                                className="w-10 h-10"
-                            />
+    src="/logo2.png"
+    alt="All For One Art"
+    className="w-10 h-10 object-contain"
+/>
                             <div className="text-sm">
                                 <div className="text-slate-300">Salut,</div>
                                 <div className="font-semibold text-white">
@@ -719,10 +719,10 @@ export default function Dashboard() {
                             <div className="flex items-center justify-between mb-6">
                                 <div className="flex items-center gap-3">
                                     <img
-                                        src={`/logo2.png`}
-                                        alt="All For One Art"
-                                        className="w-10 h-10"
-                                    />
+    src="/logo2.png"
+    alt="All For One Art"
+    className="w-10 h-10 object-contain"
+/>
                                     <div className="font-semibold text-white">
                                         All For One Art
                                     </div>
